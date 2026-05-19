@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg:        #0A0908;
+  --fg:        #F5F2EC;
+  --fg-dim:    rgba(245, 242, 236, 0.55);
+  --fg-faint:  rgba(245, 242, 236, 0.28);
+  --hairline:  rgba(245, 242, 236, 0.14);
+  --serif:     'Instrument Serif', Georgia, serif;
+  --mono:      'JetBrains Mono', ui-monospace, Menlo, monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: auto; /* motion is fully controlled via JS */
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Hide default system cursor — custom cursor handles pointer state */
+html, body, * {
+  cursor: none;
+}
+
+@media (pointer: coarse) {
+  html, body, * {
+    cursor: auto;
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+::selection {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+/* Pre-loader */
+.pre-loader {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 600ms ease;
+}
+
+.pre-loader.gone {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pre-loader .dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--fg);
+  opacity: 0.6;
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.2; }
+  50%       { opacity: 0.8; }
+}
+
+/* Hide scrollbar on scroll container */
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
