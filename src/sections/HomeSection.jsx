@@ -7,7 +7,7 @@ import MeshBackground from '../fx/MeshBackground';
 // Non-overlapping so Veloure is fully gone BEFORE Split begins to show.
 const HOME_OUT_START = 0.04;
 const HOME_OUT_END   = 0.28;
-const SPLIT_IN_START = 0.30;
+const SPLIT_IN_START = 0.08;
 const SPLIT_IN_END   = 0.72;
 
 // Dramatic reveal: triggers 400ms after the loader finishes leaving.
