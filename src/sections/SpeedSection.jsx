@@ -2,17 +2,14 @@ import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Scroll, useIsMobile } from '../lib/ScrollContext';
 import { clamp01, easeInOutCubic, easeOutCubic, easeOutQuint } from '../lib/easing';
 import PlaceholderMedia from '../fx/PlaceholderMedia';
+import PairedVideo from '../fx/PairedVideo';
 
 // Hand-tuned tile sizing rhythm — "mimics a real edit, not a uniform grid"
+// Speed tiles. The `pair` field lets a tile play one clip then auto-advance
+// to another for a continuous transition (used for 1of1 → final-1of1).
 export const SPEED_TILES = [
-  { label: 'Porsche 911 Targa',    w: 1100, h: 620,  seed: 3  },
-  { label: 'Atelier — interior',   w: 520,  h: 360,  seed: 7  },
-  { label: 'Margot — campaign',    w: 780,  h: 1040, seed: 12 },
-  { label: 'Lake Como, 06:14',     w: 1380, h: 720,  seed: 19 },
-  { label: 'Vinland — table read', w: 540,  h: 380,  seed: 23 },
-  { label: 'Nocturne / nightlife', w: 880,  h: 580,  seed: 31 },
-  { label: 'Maison — couture',     w: 460,  h: 640,  seed: 37 },
-  { label: 'Sable — film still',   w: 1240, h: 700,  seed: 43 },
+  { label: 'afro-rave', w: 1080, h: 1920, seed: 3, src: '/afro-rave.mp4', lazy: true },
+  { label: '1of1 → final', w: 1080, h: 1920, seed: 7, src: '/1of1.mp4', next: '/final-1of1.mp4' },
 ];
 
 // Desktop scroll breakdown:
@@ -133,30 +130,6 @@ export default function SpeedSection({ sectionRef }) {
             opacity: sectionInView ? 1 : 0,
           }}
         >
-          {/* Section label — only "02 — SPEED", no subtitle */}
-          <div
-            style={{
-              position: 'absolute',
-              top: '5vh',
-              left: '5vw',
-              zIndex: 3,
-              opacity: enterProgress * chromeOpacity,
-              transition: 'opacity 600ms ease',
-            }}
-          >
-            <div
-              style={{
-                fontFamily: 'var(--mono)',
-                fontSize: 9.5,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: 'rgba(245,242,236,0.5)',
-              }}
-            >
-              02 — SPEED
-            </div>
-          </div>
-
           {/* The horizontal track */}
           <div
             style={{
@@ -177,40 +150,6 @@ export default function SpeedSection({ sectionRef }) {
             {SPEED_TILES.map((tile, i) => (
               <DesktopTile key={i} tile={tile} />
             ))}
-          </div>
-
-          {/* Reel counter — bottom-right only */}
-          <div
-            style={{
-              position: 'absolute',
-              right: '5vw',
-              bottom: '5vh',
-              zIndex: 3,
-              display: 'flex',
-              alignItems: 'baseline',
-              gap: 12,
-              opacity: enterProgress * chromeOpacity,
-              fontFamily: 'var(--mono)',
-              fontSize: 11,
-              color: 'rgba(245,242,236,0.85)',
-              letterSpacing: '0.08em',
-            }}
-          >
-            <span
-              style={{
-                fontFamily: 'var(--mono)',
-                fontSize: 9.5,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: 'rgba(245,242,236,0.5)',
-              }}
-            >
-              REEL
-            </span>
-            {String(
-              Math.min(SPEED_TILES.length, Math.floor(rawProgress * SPEED_TILES.length) + 1)
-            ).padStart(2, '0')}
-            <span style={{ color: 'rgba(245,242,236,0.35)' }}>/ {SPEED_TILES.length}</span>
           </div>
 
           {/* Punch-in dark overlay — builds as track zooms */}
@@ -258,67 +197,6 @@ export default function SpeedSection({ sectionRef }) {
           justifyContent: 'center',
         }}
       >
-        {/* Section label */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '5vh',
-            left: '5vw',
-            zIndex: 3,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.5)',
-            }}
-          >
-            02 — SPEED
-          </div>
-        </div>
-
-        {/* Reel counter */}
-        <div
-          style={{
-            position: 'absolute',
-            right: '5vw',
-            bottom: '5vh',
-            zIndex: 3,
-            display: 'flex',
-            alignItems: 'baseline',
-            gap: 12,
-            fontFamily: 'var(--mono)',
-            fontSize: 11,
-            color: 'rgba(245,242,236,0.85)',
-            letterSpacing: '0.08em',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.5)',
-            }}
-          >
-            REEL
-          </span>
-          {String(
-            Math.min(
-              SPEED_TILES.length,
-              Math.max(
-                1,
-                Math.floor(clamp01(localY / mobileSectionHeight) * SPEED_TILES.length) + 1
-              )
-            )
-          ).padStart(2, '0')}
-          <span style={{ color: 'rgba(245,242,236,0.35)' }}>/ {SPEED_TILES.length}</span>
-        </div>
-
         {/* Vertical tile stack */}
         {SPEED_TILES.map((tile, i) => {
           const tileStart = i * MOBILE_PER_TILE_VH * vh;
@@ -363,7 +241,11 @@ export default function SpeedSection({ sectionRef }) {
                 background: '#111',
               }}
             >
-              <PlaceholderMedia seed={tile.seed} label={tile.label} kind="video" />
+              {tile.next ? (
+                <PairedVideo src={tile.src} next={tile.next} />
+              ) : (
+                <PlaceholderMedia seed={tile.seed} label={tile.label} kind="video" src={tile.src} lazy={tile.lazy} />
+              )}
             </div>
           );
         })}
@@ -397,7 +279,7 @@ function DesktopTile({ tile }) {
         background: '#111',
       }}
     >
-      <PlaceholderMedia seed={tile.seed} label={tile.label} kind="video" />
+      <PlaceholderMedia seed={tile.seed} label={tile.label} kind="video" src={tile.src} />
     </div>
   );
 }

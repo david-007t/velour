@@ -2,14 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Cube';
+  src: url('/fonts/Cube.ttf') format('truetype');
+  font-display: swap;
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'WhiteBold';
+  src: url('/fonts/WhiteBold.ttf') format('truetype');
+  font-display: swap;
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Avayx';
+  src: url('/fonts/Avayx.ttf') format('truetype');
+  font-display: swap;
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
   --bg:        #0A0908;
   --fg:        #F5F2EC;
   --fg-dim:    rgba(245, 242, 236, 0.55);
   --fg-faint:  rgba(245, 242, 236, 0.28);
   --hairline:  rgba(245, 242, 236, 0.14);
-  --serif:     'Instrument Serif', Georgia, serif;
+  --serif:     'Bodoni Moda', Georgia, serif;
   --mono:      'JetBrains Mono', ui-monospace, Menlo, monospace;
+  --display:   'Avayx', 'WhiteBold', 'Bodoni Moda', Georgia, serif;
 }
 
 *, *::before, *::after {
@@ -31,19 +56,16 @@ html {
   scroll-behavior: auto; /* motion is fully controlled via JS */
 }
 
+html, body {
+  overscroll-behavior: none;
+}
+
 body {
   overflow-x: hidden;
 }
 
-/* Hide default system cursor — custom cursor handles pointer state */
-html, body, * {
-  cursor: none;
-}
-
-@media (pointer: coarse) {
-  html, body, * {
-    cursor: auto;
-  }
+.scroll-container {
+  overscroll-behavior: none;
 }
 
 a {
@@ -56,35 +78,32 @@ a {
   color: var(--bg);
 }
 
-/* Pre-loader */
-.pre-loader {
+.loader-overlay {
+  --bg: #2e3138;
+  --primary1: #2e3138;
+  --primary2: #565b64;
+  --fg-t: rgba(245, 242, 236, 0.92);
+  --trans-dur: 0.3s;
   position: fixed;
   inset: 0;
-  background: var(--bg);
-  z-index: 100;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 600ms ease;
+  background: #0A0908;
+  opacity: 1;
+  transition: opacity 900ms cubic-bezier(.2,.6,.2,1);
 }
 
-.pre-loader.gone {
+.loader-overlay__mesh {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+}
+
+.loader-overlay--leaving {
   opacity: 0;
   pointer-events: none;
-}
-
-.pre-loader .dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--fg);
-  opacity: 0.6;
-  animation: blink 1.4s ease-in-out infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 0.2; }
-  50%       { opacity: 0.8; }
 }
 
 /* Hide scrollbar on scroll container */

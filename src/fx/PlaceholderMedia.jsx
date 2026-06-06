@@ -1,6 +1,29 @@
 import { useMemo } from 'react';
+import LazyVideo from './LazyVideo';
 
-export default function PlaceholderMedia({ seed = 0, label = '', kind = 'video', dim = 1 }) {
+export default function PlaceholderMedia({ seed = 0, label = '', kind = 'video', dim = 1, src = null, lazy = false }) {
+  if (src) {
+    const VideoTag = lazy ? LazyVideo : 'video';
+    return (
+      <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: '#0A0908' }}>
+        <VideoTag
+          src={src}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload={lazy ? undefined : 'auto'}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
+        />
+      </div>
+    );
+  }
+
   const rand = useMemo(() => {
     let s = seed + 1;
     return () => {

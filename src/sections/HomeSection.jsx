@@ -1,38 +1,41 @@
 import { useContext, useEffect, useState } from 'react';
 import { Scroll } from '../lib/ScrollContext';
-import { clamp01, easeOutCubic } from '../lib/easing';
-import AtmosphericHero from '../fx/AtmosphericHero';
+import { clamp01 } from '../lib/easing';
+import MeshBackground from '../fx/MeshBackground';
 
-// Home section is 200vh tall — the extra 100vh gives room for a smooth exit
-// animation that overlaps cleanly with Speed's smear entry.
-const HOME_VH = 2.0; // multiplier on viewport height
+// Crossfade ranges (fraction of one viewport of scroll).
+// Non-overlapping so Veloure is fully gone BEFORE Split begins to show.
+const HOME_OUT_START = 0.04;
+const HOME_OUT_END   = 0.28;
+const SPLIT_IN_START = 0.30;
+const SPLIT_IN_END   = 0.72;
 
-export default function HomeSection({ sectionRef }) {
+// Dramatic reveal: triggers 400ms after the loader finishes leaving.
+const REVEAL_DELAY_MS = 400;
+const REVEAL_TRANSITION_MS = 1600;
+
+export default function HomeSection({
+  sectionRef,
+  loaderDone = true,
+  pathSelected = false,
+  children,
+}) {
   const { y, vh } = useContext(Scroll);
-  const [stage, setStage] = useState(0); // 0: video, 1: wordmark, 2: tagline, 3: cue
+  const progress = vh ? clamp01(y / vh) : 0;
 
-  // Four-stage entrance choreography: video → 800ms → wordmark → 1600ms → tagline → 1600ms → cue
+  // Scroll-driven zoom + fade — kept from previous implementation.
+  const zoomScale = 1 + progress * 2.25;
+  const homeOpacity = 1 - clamp01((progress - HOME_OUT_START) / (HOME_OUT_END - HOME_OUT_START));
+  const splitOpacity = clamp01((progress - SPLIT_IN_START) / (SPLIT_IN_END - SPLIT_IN_START));
+  const blurPx = progress * 10;
+
+  // Dramatic reveal (one-shot on mount, after loader leaves).
+  const [revealed, setRevealed] = useState(false);
   useEffect(() => {
-    const ts = [
-      setTimeout(() => setStage(1), 800),
-      setTimeout(() => setStage(2), 800 + 1200 + 400),
-      setTimeout(() => setStage(3), 800 + 1200 + 400 + 1000 + 600),
-    ];
-    return () => ts.forEach(clearTimeout);
-  }, []);
-
-  // Acceleration: runs from 0 to 1 over the full section height
-  // so the hero is almost gone exactly when Speed begins
-  const accel = clamp01(y / (vh * HOME_VH * 0.9));
-  const stretchX = 1 + accel * 2.6;
-  const blurPx = accel * 28;
-
-  // Hero opacity: starts dropping at accel=0.5, zero at accel=1.0
-  // This means the hero is still 50% visible when the user is halfway through scrolling Home
-  const heroOpacity = 1 - clamp01((accel - 0.45) / 0.55);
-
-  // Wordmark / tagline fade out faster so they clear before the smear
-  const textOpacity = Math.max(0, 1 - accel * 2.2);
+    if (!loaderDone) return undefined;
+    const t = window.setTimeout(() => setRevealed(true), REVEAL_DELAY_MS);
+    return () => window.clearTimeout(t);
+  }, [loaderDone]);
 
   return (
     <section
@@ -40,11 +43,11 @@ export default function HomeSection({ sectionRef }) {
       data-section="home"
       style={{
         position: 'relative',
-        height: `${HOME_VH * 100}vh`,
+        height: '200vh',
         width: '100%',
+        background: '#0A0908',
       }}
     >
-      {/* Sticky hero — pins to top of viewport for the full section scroll */}
       <div
         style={{
           position: 'sticky',
@@ -52,170 +55,81 @@ export default function HomeSection({ sectionRef }) {
           height: '100vh',
           width: '100%',
           overflow: 'hidden',
+          background: '#0A0908',
         }}
       >
-        {/* Atmospheric hero — stretches and blurs as user scrolls */}
+        {/* SplitScreenEntry — always rendered; fades in based on scroll */}
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            transform: `scaleX(${stretchX})`,
-            transformOrigin: 'center',
-            filter: `blur(${blurPx}px)`,
-            opacity: heroOpacity,
-            transition: 'none',
-            willChange: 'transform, filter, opacity',
+            zIndex: 1,
+            opacity: pathSelected ? 1 : splitOpacity,
+            pointerEvents: pathSelected || splitOpacity > 0.94 ? 'auto' : 'none',
           }}
         >
-          <AtmosphericHero />
+          {children}
         </div>
 
-        {/* Wordmark — centered */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: `translate(-50%, calc(-50% + ${stage >= 1 ? 0 : 18}px))`,
-            textAlign: 'center',
-            opacity: stage >= 1 ? textOpacity : 0,
-            transition: 'opacity 1200ms cubic-bezier(.2,.6,.2,1), transform 1200ms cubic-bezier(.2,.6,.2,1)',
-            zIndex: 2,
-          }}
-        >
-          <h1
-            style={{
-              fontFamily: 'var(--serif)',
-              fontSize: 'clamp(72px, 13vw, 220px)',
-              lineHeight: 0.9,
-              letterSpacing: '-0.025em',
-              margin: 0,
-              fontWeight: 400,
-              color: '#F5F2EC',
-            }}
-          >
-            Velour
-          </h1>
-        </div>
-
-        {/* Tagline */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: 'calc(50% + clamp(50px, 9vw, 130px))',
-            transform: 'translateX(-50%)',
-            opacity: stage >= 2 ? textOpacity : 0,
-            transition: 'opacity 1000ms cubic-bezier(.2,.6,.2,1)',
-            zIndex: 2,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          <p
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 12,
-              letterSpacing: '0.32em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.72)',
-              margin: 0,
-              textAlign: 'center',
-            }}
-          >
-            TBD
-          </p>
-        </div>
-
-        {/* Scroll cue */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: '5vh',
-            transform: 'translateX(-50%)',
-            opacity: stage >= 3 ? Math.max(0, 1 - accel * 3) : 0,
-            transition: 'opacity 900ms cubic-bezier(.2,.6,.2,1)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 12,
-            zIndex: 2,
-          }}
-        >
+        {/* Home layer — Mesh bg + Veloure wordmark.
+            Fully unmounted once a path is selected so the WebGL shader
+            stops eating GPU while the chosen side fills the screen. */}
+        {!pathSelected && (
           <div
             style={{
-              width: 1,
-              height: 56,
-              background: 'linear-gradient(to bottom, transparent, rgba(245,242,236,0.5), transparent)',
-              animation: 'scroll-cue 2.4s ease-in-out infinite',
-            }}
-          />
-          <span
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.55)',
+              position: 'absolute',
+              inset: 0,
+              zIndex: 3,
+              opacity: homeOpacity,
+              transform: `scale(${zoomScale})`,
+              transformOrigin: '50% 50%',
+              transition: 'none',
+              pointerEvents: 'none',
+              willChange: 'opacity, transform',
             }}
           >
-            SCROLL
-          </span>
-          <style>{`
-            @keyframes scroll-cue {
-              0%, 100% { transform: translateY(-6px); opacity: 0.6; }
-              50% { transform: translateY(6px); opacity: 1; }
-            }
-          `}</style>
-        </div>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                filter: `blur(${blurPx}px)`,
+                transition: 'filter 180ms linear',
+              }}
+            >
+              <MeshBackground />
+            </div>
 
-        {/* Top-right brand marker */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '4vh',
-            right: '5vw',
-            opacity: stage >= 3 ? Math.max(0, 1 - accel * 3) : 0,
-            transition: 'opacity 900ms ease',
-            zIndex: 2,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.45)',
-            }}
-          >
-            VELOUR · STUDIO · MMXXVI
-          </span>
-        </div>
-
-        {/* Bottom-left section index */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '5vw',
-            bottom: '5vh',
-            opacity: stage >= 3 ? Math.max(0, 1 - accel * 3) : 0,
-            transition: 'opacity 900ms ease',
-            zIndex: 2,
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.45)',
-            }}
-          >
-            01 — HOME
-          </span>
-        </div>
+            <div
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center',
+                zIndex: 4,
+              }}
+            >
+              <h1
+                style={{
+                  fontFamily: 'var(--display)',
+                  fontSize: 'clamp(36px, 5.5vw, 90px)',
+                  lineHeight: 0.9,
+                  letterSpacing: '0',
+                  margin: 0,
+                  fontWeight: 400,
+                  color: '#F5F2EC',
+                  opacity: revealed ? 1 : 0,
+                  transform: revealed ? 'scale(1)' : 'scale(1.4)',
+                  filter: revealed ? 'blur(0px)' : 'blur(20px)',
+                  transition: `opacity ${REVEAL_TRANSITION_MS}ms cubic-bezier(.16,1,.3,1), transform ${REVEAL_TRANSITION_MS}ms cubic-bezier(.16,1,.3,1), filter ${REVEAL_TRANSITION_MS}ms cubic-bezier(.16,1,.3,1)`,
+                  willChange: 'opacity, transform, filter',
+                }}
+              >
+                Veloure
+              </h1>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

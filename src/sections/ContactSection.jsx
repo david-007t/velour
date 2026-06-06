@@ -41,28 +41,6 @@ export default function ContactSection({ sectionRef }) {
           gap: 32,
         }}
       >
-        {/* END · CREDITS */}
-        <div
-          style={{
-            opacity: clamp01(entryProgress * 1.4),
-            transform: `translateY(${(1 - entryProgress) * 24}px)`,
-            transition: 'none',
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              textAlign: 'center',
-              color: 'rgba(245,242,236,0.4)',
-            }}
-          >
-            END · CREDITS
-          </div>
-        </div>
-
         {/* Italic copy */}
         <div
           style={{
@@ -89,7 +67,7 @@ export default function ContactSection({ sectionRef }) {
 
         {/* Email */}
         <a
-          href="mailto:studio@velour.studio"
+          href="mailto:contact@veloure.studio"
           data-interactive=""
           style={{
             opacity: clamp01((entryProgress - 0.25) * 1.4),
@@ -110,45 +88,9 @@ export default function ContactSection({ sectionRef }) {
             e.currentTarget.style.borderColor = 'rgba(245,242,236,0.4)';
           }}
         >
-          studio@velour.studio
+          contact@veloure.studio
         </a>
 
-        {/* Footer mark */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '5vh',
-            left: 0,
-            right: 0,
-            display: 'flex',
-            justifyContent: 'space-between',
-            padding: '0 5vw',
-            opacity: clamp01((entryProgress - 0.4) * 1.4),
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.35)',
-            }}
-          >
-            VELOUR · STUDIO
-          </span>
-          <span
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.35)',
-            }}
-          >
-            MMXXVI
-          </span>
-        </div>
       </div>
     </section>
   );

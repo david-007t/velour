@@ -1,6 +1,6 @@
-# Velour Studio
+# Veloure Studio
 
-Single-page site for a luxury creative production house.
+Single-page site for Veloure — a luxury creative production house.
 
 ## Stack
 

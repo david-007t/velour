@@ -1,21 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { Scroll, useIsMobile } from './lib/ScrollContext';
 import HomeSection from './sections/HomeSection';
-import SpeedSection from './sections/SpeedSection';
-import FocusSection from './sections/FocusSection';
-import ContactSection from './sections/ContactSection';
-import Grain from './fx/Grain';
-import Cursor from './fx/Cursor';
+import SplitScreenEntry from './sections/SplitScreenEntry';
+import LoadingOverlay from './fx/LoadingOverlay';
+import VideoPanel from './fx/VideoPanel';
+import OutroVideoPanel from './fx/OutroVideoPanel';
+import VideoModal from './fx/VideoModal';
+import PerfHUD from './fx/PerfHUD';
+import { debugFlags } from './lib/debugFlags';
 
 // ── Locked design values (replaces tweaks system) ───────────────────────────
-const SERIF              = 'Instrument Serif'; // eslint-disable-line no-unused-vars
+const SERIF              = 'Bodoni Moda'; // eslint-disable-line no-unused-vars
 const MONO               = 'JetBrains Mono';   // eslint-disable-line no-unused-vars
 // TODO: replace with real tagline when client provides copy
 const TAGLINE            = 'TBD';              // eslint-disable-line no-unused-vars
 const WORDMARK_PLACEMENT = 'centered';          // eslint-disable-line no-unused-vars
 const GRAIN_OPACITY      = 0.08;
 const SHOW_FOCUS_COUNTER = true;
-const SHOW_CUSTOM_CURSOR = true;
 
 const SECTIONS_META = [
   { id: 'home',    label: 'Home',    num: '01' },
@@ -23,6 +24,26 @@ const SECTIONS_META = [
   { id: 'focus',   label: 'Focus',   num: '03' },
   { id: 'contact', label: 'Contact', num: '04' },
 ];
+
+// Bucket panels — each shows a tiny 5s muted preview loop. Click
+// opens the full-quality video in a modal. previewSrc is the loop;
+// fullSrc is what plays in the modal.
+const SPEED_PANELS = [
+  { id: 'soccer-drone', previewSrc: '/loops/1of1.mp4',       fullSrc: '/1of1.mp4',       poster: '/posters/1of1.jpg' },
+  { id: 'soccer-kid',   previewSrc: '/loops/final-1of1.mp4', fullSrc: '/final-1of1.mp4', poster: '/posters/final-1of1.jpg' },
+  { id: 'afro-rave',    previewSrc: '/loops/afro-rave.mp4',  fullSrc: '/afro-rave.mp4',  poster: '/posters/afro-rave.jpg', lazy: true },
+];
+const FOCUS_PANELS = [
+  { id: 'juice',      previewSrc: '/loops/focus.mp4',      fullSrc: '/focus.mp4',      poster: '/posters/focus.jpg' },
+  { id: 'yomi-wunmi', previewSrc: '/loops/yomi-wunmi.mp4', fullSrc: '/yomi-wunmi.mp4', poster: '/posters/yomi-wunmi.jpg' },
+];
+
+// Outro: same mission + contact for both buckets. The anchor video
+// is the last loop of whichever bucket the user came from (visual
+// continuity from the reel into the contracting outro card).
+const OUTRO_MISSION_PLACEHOLDER =
+  "With the rise of AI, it's more important than ever to make content that is as human and emotional as possible. Every shot immortalizes priceless moments.";
+const OUTRO_EMAIL = 'contact@veloure.studio';
 
 // ── SideRail ─────────────────────────────────────────────────────────────────
 function SideRail({ activeIndex, scrollContainerRef, hidden }) {
@@ -127,7 +148,7 @@ function TopMark({ hidden }) {
           letterSpacing: '-0.01em',
         }}
       >
-        Velour
+        Veloure
       </span>
       <span
         style={{
@@ -153,27 +174,27 @@ function TopMark({ hidden }) {
 }
 
 // ── App ──────────────────────────────────────────────────────────────────────
+// Scroll lock: split is fully visible at this progress value.
+// Matches SPLIT_IN_END in HomeSection.jsx.
+const SPLIT_SCROLL_LOCK = 0.72;
+
 export default function App() {
   const scrollContainerRef = useRef(null);
   const [scrollState, setScrollState]   = useState({ y: 0, vh: 800 });
   const [activeIndex, setActiveIndex]   = useState(0);
   const [hasScrolled, setHasScrolled]   = useState(false);
+  const [loaderLeaving, setLoaderLeaving] = useState(false);
+  const [loaderVisible, setLoaderVisible] = useState(true);
+  const [selectedPath, setSelectedPath] = useState(null);
+  const [modalSrc, setModalSrc] = useState(null);
   const isMobile = useIsMobile();
 
   const homeRef    = useRef(null);
-  const speedRef   = useRef(null);
-  const focusRef   = useRef(null);
-  const contactRef = useRef(null);
-  const sectionRefs = [homeRef, speedRef, focusRef, contactRef];
+  const sectionRefs = [homeRef];
 
-  // Fade out pre-loader
-  useEffect(() => {
-    const pre = document.getElementById('pre-loader');
-    if (pre) {
-      setTimeout(() => pre.classList.add('gone'), 100);
-      setTimeout(() => pre.remove(), 900);
-    }
-  }, []);
+  // Ref so event handlers always see current selectedPath
+  const selectedPathRef = useRef(null);
+  useEffect(() => { selectedPathRef.current = selectedPath; }, [selectedPath]);
 
   // Apply CSS font variables
   useEffect(() => {
@@ -182,15 +203,51 @@ export default function App() {
     root.style.setProperty('--mono', `'${MONO}', ui-monospace, Menlo, monospace`);
   }, []);
 
-  // Scroll listener
+  // Loader: 1 second on screen, then trigger its leave animation.
+  // Combined with HomeSection's 400ms reveal delay + 1100ms transition,
+  // Veloure is fully visible at 2.5s from page load.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setLoaderLeaving(true), 1000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+
+  // Scroll listener + locks for the non-scrollable states.
   useEffect(() => {
     const c = scrollContainerRef.current;
     if (!c) return undefined;
     let raf = 0;
     let pending = false;
+    let touchStartY = 0;
+
+    const getLockBounds = () => {
+      const vh = c.clientHeight || window.innerHeight || 1;
+      const maxScroll = Math.max(c.scrollHeight - vh, 0);
+      const splitLockY = Math.min(vh * SPLIT_SCROLL_LOCK, maxScroll);
+
+      if (!selectedPathRef.current) {
+        return { min: 0, max: splitLockY };
+      }
+
+      const outro = c.querySelector('[data-section="outro"]');
+      if (outro) {
+        return { min: splitLockY, max: Math.min(outro.offsetTop + vh * 0.9, maxScroll) };
+      }
+
+      return { min: splitLockY, max: maxScroll };
+    };
+
+    const clampScroll = () => {
+      const { min, max } = getLockBounds();
+      if (c.scrollTop < min) { c.scrollTop = min; return true; }
+      if (c.scrollTop > max) { c.scrollTop = max; return true; }
+      return false;
+    };
 
     const update = () => {
       pending = false;
+      clampScroll();
+
       const y  = c.scrollTop;
       const vh = c.clientHeight;
       setScrollState({ y, vh });
@@ -210,12 +267,61 @@ export default function App() {
       raf = requestAnimationFrame(update);
     };
 
+    const shouldBlockScrollDelta = (deltaY) => {
+      const { min, max } = getLockBounds();
+      return (deltaY < 0 && c.scrollTop <= min) || (deltaY > 0 && c.scrollTop >= max);
+    };
+
+    const exitSelectedPathAtTop = (deltaY) => {
+      const { min } = getLockBounds();
+      if (!selectedPathRef.current || deltaY >= 0 || c.scrollTop > min) return false;
+      selectedPathRef.current = null;
+      setSelectedPath(null);
+      c.scrollTop = min;
+      return true;
+    };
+
+    const onWheel = (event) => {
+      if (exitSelectedPathAtTop(event.deltaY)) {
+        event.preventDefault();
+        return;
+      }
+      if (shouldBlockScrollDelta(event.deltaY)) {
+        event.preventDefault();
+        clampScroll();
+      }
+    };
+
+    const onTouchStart = (event) => {
+      touchStartY = event.touches[0]?.clientY ?? 0;
+    };
+
+    const onTouchMove = (event) => {
+      const nextY = event.touches[0]?.clientY ?? touchStartY;
+      const deltaY = touchStartY - nextY;
+      touchStartY = nextY;
+      if (exitSelectedPathAtTop(deltaY)) {
+        event.preventDefault();
+        return;
+      }
+      if (shouldBlockScrollDelta(deltaY)) {
+        event.preventDefault();
+        clampScroll();
+      }
+    };
+
     update();
     c.addEventListener('scroll', onScroll, { passive: true });
+    c.addEventListener('wheel', onWheel, { passive: false });
+    c.addEventListener('touchstart', onTouchStart, { passive: true });
+    c.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('resize', onScroll);
     return () => {
       cancelAnimationFrame(raf);
       c.removeEventListener('scroll', onScroll);
+      c.removeEventListener('wheel', onWheel);
+      c.removeEventListener('touchstart', onTouchStart);
+      c.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('resize', onScroll);
     };
   }, [hasScrolled]);
@@ -231,8 +337,17 @@ export default function App() {
   // Top mark hidden on Home rest-state
   const topMarkHidden = activeIndex === 0 && !hasScrolled;
 
+  // After leave animation kicks in (~950ms), fully unmount the loader.
+  useEffect(() => {
+    if (!loaderLeaving) return undefined;
+    const timer = window.setTimeout(() => setLoaderVisible(false), 950);
+    return () => window.clearTimeout(timer);
+  }, [loaderLeaving]);
+
   return (
     <Scroll.Provider value={scrollState}>
+      {loaderVisible && <LoadingOverlay leaving={loaderLeaving} />}
+
       {/* Main scroll container */}
       <div
         ref={scrollContainerRef}
@@ -247,55 +362,49 @@ export default function App() {
           background: '#0A0908',
         }}
       >
-        <HomeSection sectionRef={homeRef} />
-        <SpeedSection sectionRef={speedRef} />
-        <FocusSection sectionRef={focusRef} showCounter={SHOW_FOCUS_COUNTER} />
-        <ContactSection sectionRef={contactRef} />
-      </div>
-
-      {/* Fixed overlays — outside scroll container */}
-      <TopMark hidden={topMarkHidden} />
-      <SideRail
-        activeIndex={activeIndex}
-        scrollContainerRef={scrollContainerRef}
-        hidden={!railVisible}
-      />
-
-      {/* ACT counter — bottom-right */}
-      <div
-        style={{
-          position: 'fixed',
-          right: 'clamp(20px, 3vw, 36px)',
-          bottom: 'clamp(20px, 3vh, 36px)',
-          zIndex: 49,
-          opacity: hasScrolled && activeIndex !== SECTIONS_META.length - 1 ? 0.55 : 0,
-          transition: 'opacity 800ms ease',
-          pointerEvents: 'none',
-          display: 'flex',
-          alignItems: 'baseline',
-          gap: 8,
-          fontFamily: 'var(--mono)',
-          fontSize: 9.5,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: '#F5F2EC',
-        }}
-      >
-        <span>ACT</span>
-        <span
-          style={{
-            fontFamily: 'var(--serif)',
-            fontSize: 16,
-            letterSpacing: 0,
-          }}
+        <HomeSection
+          sectionRef={homeRef}
+          loaderDone={loaderLeaving}
+          pathSelected={!!selectedPath}
         >
-          {SECTIONS_META[activeIndex].num}
-        </span>
+          <SplitScreenEntry selectedPath={selectedPath} onSelectPath={setSelectedPath} />
+        </HomeSection>
+        {selectedPath && (() => {
+          const panels = selectedPath === 'focus' ? FOCUS_PANELS : SPEED_PANELS;
+          return panels.map((p, i) => {
+            const isLast = i === panels.length - 1;
+            if (isLast) {
+              return (
+                <OutroVideoPanel
+                  key={p.id}
+                  previewSrc={p.previewSrc}
+                  fullSrc={p.fullSrc}
+                  poster={p.poster}
+                  mission={OUTRO_MISSION_PLACEHOLDER}
+                  contactEmail={OUTRO_EMAIL}
+                  onOpen={setModalSrc}
+                />
+              );
+            }
+            return (
+              <VideoPanel
+                key={p.id}
+                previewSrc={p.previewSrc}
+                fullSrc={p.fullSrc}
+                poster={p.poster}
+                lazy={p.lazy}
+                onOpen={setModalSrc}
+              />
+            );
+          });
+        })()}
       </div>
+
+      {/* Modal overlay for full-quality video playback */}
+      <VideoModal src={modalSrc} open={!!modalSrc} onClose={() => setModalSrc(null)} />
 
       {/* Global FX */}
-      <Grain opacity={GRAIN_OPACITY} />
-      {SHOW_CUSTOM_CURSOR && <Cursor />}
+      {debugFlags.debug && <PerfHUD />}
     </Scroll.Provider>
   );
 }

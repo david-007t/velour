@@ -4,12 +4,9 @@ import { clamp01, easeOutCubic } from '../lib/easing';
 import PlaceholderMedia from '../fx/PlaceholderMedia';
 
 const FOCUS_FRAMES = [
-  { label: 'Inez — 35mm, no.4',    seed: 51,  kind: 'still' },
-  { label: 'Atelier no.12 / slow', seed: 64,  kind: 'video' },
-  { label: 'Light study — 04:11',  seed: 73,  kind: 'still' },
-  { label: 'Margot, looking away', seed: 89,  kind: 'still' },
-  { label: 'Hands / cloth / silk', seed: 104, kind: 'video' },
-  { label: 'Last light, Lake Como', seed: 121, kind: 'still' },
+  { label: 'juice',       seed: 51,  kind: 'video', src: '/focus.mp4' },
+  { label: 'yomi-wunmi',  seed: 64,  kind: 'video', src: '/yomi-wunmi.mp4' },
+  { label: 'p2w-arcana',  seed: 73,  kind: 'video', src: '/p2w-arcana.mp4', lazy: true },
 ];
 
 const PER_FRAME_VH = 1.2;
@@ -66,29 +63,6 @@ export default function FocusSection({ sectionRef, showCounter }) {
           overflow: 'hidden',
         }}
       >
-        {/* Section label */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '5vh',
-            left: '5vw',
-            zIndex: 3,
-            opacity: entryProgress,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.5)',
-            }}
-          >
-            03 — FOCUS
-          </div>
-        </div>
-
         {/* Frame stack — punch scale + blur applied here */}
         <div
           style={{
@@ -130,108 +104,11 @@ export default function FocusSection({ sectionRef, showCounter }) {
                   transition: 'opacity 240ms cubic-bezier(.2,.6,.2,1)',
                 }}
               >
-                <PlaceholderMedia seed={f.seed} label={f.label} kind={f.kind} dim={0.95} />
+                <PlaceholderMedia seed={f.seed} label={f.label} kind={f.kind} src={f.src} lazy={f.lazy} dim={0.95} />
               </div>
             );
           })}
 
-          {/* Aperture corner marks */}
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              pointerEvents: 'none',
-              opacity: entryProgress * 0.6,
-            }}
-          >
-            <ApertureMarks />
-          </div>
-        </div>
-
-        {/* Frame counter */}
-        {showCounter && (
-          <div
-            style={{
-              position: 'absolute',
-              right: '5vw',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              opacity: entryProgress,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-end',
-              gap: 4,
-              zIndex: 3,
-            }}
-          >
-            <div
-              style={{
-                fontFamily: 'var(--mono)',
-                fontSize: 9.5,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                color: 'rgba(245,242,236,0.45)',
-              }}
-            >
-              FRAME
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--serif)',
-                fontSize: 52,
-                color: 'rgba(245,242,236,0.92)',
-                lineHeight: 1,
-                letterSpacing: '-0.02em',
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {String(activeIndex + 1).padStart(2, '0')}
-            </div>
-            <div
-              style={{
-                fontFamily: 'var(--mono)',
-                fontSize: 10,
-                color: 'rgba(245,242,236,0.4)',
-                letterSpacing: '0.18em',
-              }}
-            >
-              / {String(FOCUS_FRAMES.length).padStart(2, '0')}
-            </div>
-          </div>
-        )}
-
-        {/* Caption */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '12vw',
-            bottom: '7vh',
-            opacity: entryProgress,
-            zIndex: 3,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 9.5,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.4)',
-            }}
-          >
-            CAPTION
-          </div>
-          <div
-            style={{
-              fontFamily: 'var(--mono)',
-              fontSize: 12,
-              color: 'rgba(245,242,236,0.82)',
-              marginTop: 6,
-              letterSpacing: '0.04em',
-            }}
-          >
-            {FOCUS_FRAMES[activeIndex].label}
-          </div>
         </div>
 
         {/* End-of-section fade to black */}
