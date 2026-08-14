@@ -1,123 +1,114 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<meta name="robots" content="noindex, nofollow"/>
-<title>Veloure — Selected Work</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Archivo:wght@800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<style>
-  *{margin:0;padding:0;box-sizing:border-box}
-  html{height:100%}
-  body{min-height:100%;background:#0D0C0B;color:#F3EFE7;font-family:'JetBrains Mono',monospace;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-  .wrap{min-height:100vh;min-height:100dvh;max-width:1160px;margin:0 auto;padding:0 clamp(18px,5vw,48px);display:flex;flex-direction:column}
-  .hero{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,9vh,90px) 0 clamp(30px,6vh,60px)}
-  .head{font-family:'Archivo',sans-serif;font-weight:900;text-transform:uppercase;line-height:.86;letter-spacing:-.025em;font-size:clamp(46px,11vw,104px)}
-  .sub{font-size:clamp(11px,1.5vw,13px);letter-spacing:.2em;text-transform:uppercase;color:#8a837a;margin-top:24px;line-height:2;max-width:50ch}
-  .cabinet{flex:0 0 auto;padding-bottom:clamp(22px,4vh,50px)}
-  .drawer{position:relative}
-  .tabrow{position:relative;height:46px}
-  .tag{position:absolute;bottom:-1px;display:flex;align-items:stretch;height:46px;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
-  .side{width:42px;height:100%;display:block;flex:0 0 auto}
-  .side.end{transform:scaleX(-1)}
-  .mid{color:var(--t);display:flex;align-items:center;font-family:'Newsreader',serif;font-weight:500;font-size:25px;padding:0 6px;white-space:nowrap;margin:0 -1px}
-  .band{position:relative;padding:20px 26px;display:flex;align-items:center;justify-content:flex-end;border-radius:4px 4px 0 0;transition:background .4s ease}
-  .cat{display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;transition:color .4s ease}
-  .cat-arrow{display:inline-block;font-size:21px;line-height:.7;transform-origin:center;transition:transform .35s cubic-bezier(.4,0,.2,1)}
-  .drawer.is-open .cat-arrow{transform:rotate(-90deg)}
-  .file{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1),background .4s ease}
-  .sheet{margin:0 16px 58px;background:#F6F1E7;border-radius:4px;padding:22px 24px 24px;box-shadow:0 14px 36px rgba(0,0,0,.36)}
-  .meta{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#b0a892;border-bottom:1px solid #e5ddca;padding-bottom:9px;margin-bottom:13px;display:flex;justify-content:space-between;gap:12px}
-  .sheet p{font-family:'Newsreader',serif;font-size:16.5px;line-height:1.58;color:#2a2620;margin-bottom:18px}
-  .visit{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:11px 18px;border-radius:4px;text-decoration:none}
-
-  body.compact .head{font-size:clamp(40px,13vw,66px)}
-  body.compact .sub{margin-top:18px;letter-spacing:.16em}
-  body.compact .tabrow,body.compact .tag{height:34px}
-  body.compact .side{width:26px}
-  body.compact .mid{font-size:15px;padding:0 4px}
-  body.compact .band{padding:13px 16px}
-  body.compact .cat{font-size:9px;letter-spacing:.12em;gap:7px}
-  body.compact .cat-arrow{font-size:15px}
-  body.compact .sheet{margin:0 10px 44px;padding:16px 16px 18px}
-  body.compact .meta{font-size:9px}
-  body.compact .sheet p{font-size:14px;line-height:1.5}
-  body.compact .visit{font-size:9.5px;padding:9px 13px}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Veloure — Selected Work</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Archivo:wght@800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{height:100%}
+    body{min-height:100%;background:#0D0C0B;color:#F3EFE7;font-family:'JetBrains Mono',monospace;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    .wrap{min-height:100vh;min-height:100dvh;max-width:1160px;margin:0 auto;padding:0 clamp(18px,5vw,48px);display:flex;flex-direction:column}
+    .hero{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,9vh,90px) 0 clamp(30px,6vh,60px)}
+    .head{font-family:'Archivo',sans-serif;font-weight:900;text-transform:uppercase;line-height:.86;letter-spacing:-.025em;font-size:clamp(46px,11vw,104px)}
+    .sub{font-size:clamp(11px,1.5vw,13px);letter-spacing:.2em;text-transform:uppercase;color:#8a837a;margin-top:24px;line-height:2;max-width:50ch}
+    /* Tweak 1: the cabinet finishes at the viewport edge. */
+    .cabinet{flex:0 0 auto;padding-bottom:0}
+    .drawer{position:relative}
+    .tabrow{position:relative;height:46px}
+    .tag{position:absolute;bottom:-1px;display:flex;align-items:stretch;height:46px;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;filter:drop-shadow(0 -2px 3px rgba(0,0,0,.18))}
+    .side{width:42px;height:100%;display:block;flex:0 0 auto}
+    .side.end{transform:scaleX(-1)}
+    .mid{color:var(--t);display:flex;align-items:center;font-family:'Newsreader',serif;font-weight:500;font-size:25px;padding:0 6px;white-space:nowrap;margin:0 -1px}
+    /* Tweak 3: only a hairline and restrained shadow—no new visual language. */
+    .band{position:relative;padding:20px 26px;display:flex;align-items:center;justify-content:flex-end;border-radius:4px 4px 0 0;transition:background .4s ease;box-shadow:inset 0 1px rgba(255,255,255,.12),inset 0 -1px rgba(0,0,0,.23),0 -6px 12px rgba(0,0,0,.10)}
+    .cat{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;transition:color .4s ease;position:relative;z-index:2;display:flex;align-items:center;gap:16px}
+    .cat-arrow{display:inline-block;font-size:22px;font-family:Arial,sans-serif;font-weight:400;letter-spacing:0;line-height:.7;transform-origin:center;transition:transform .3s ease}
+    .drawer.is-open .cat-arrow{transform:rotate(-90deg)}
+    .file{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1),background .4s ease}
+    .sheet{margin:0 16px 58px;background:#F6F1E7;border-radius:4px;padding:22px 24px 24px;box-shadow:0 14px 36px rgba(0,0,0,.36)}
+    .meta{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#b0a892;border-bottom:1px solid #e5ddca;padding-bottom:9px;margin-bottom:13px;display:flex;justify-content:space-between;gap:12px}
+    .sheet p{font-family:'Newsreader',serif;font-size:16.5px;line-height:1.58;color:#2a2620;margin-bottom:18px}
+    .visit{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:11px 18px;border-radius:4px;text-decoration:none}
+    body.compact .head{font-size:clamp(40px,13vw,66px)}
+    body.compact .sub{margin-top:18px;letter-spacing:.16em}
+    body.compact .tabrow,body.compact .tag{height:34px}
+    body.compact .side{width:26px}
+    body.compact .mid{font-size:15px;padding:0 4px}
+    body.compact .band{padding:13px 16px}
+    body.compact .cat{font-size:9px;letter-spacing:.12em;gap:10px}
+    body.compact .cat-arrow{font-size:16px}
+    body.compact .sheet{margin:0 10px 44px;padding:16px 16px 18px}
+    body.compact .meta{font-size:9px}
+    body.compact .sheet p{font-size:14px;line-height:1.5}
+    body.compact .visit{font-size:9.5px;padding:9px 13px}
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="hero">
-    <div class="head">Selected<br>Work</div>
-    <div class="sub">Seven live sites, filed by craft. Pull a tab to open the file.</div>
+  <div class="wrap">
+    <div class="hero">
+      <div class="head">Selected<br>Work</div>
+      <div class="sub">Seven live sites, filed by craft. Pull a tab to open the file.</div>
+    </div>
+    <div class="cabinet" id="cabinet"></div>
   </div>
-  <div class="cabinet" id="cabinet"></div>
-</div>
-<script>
-var SH="M1.1449 -2.54901e-05L-521.145 -2.66006e-06C-531.065 -2.22644e-06 -540.343 4.90374 -545.932 13.0999L-558.55 31.6066C-563.837 39.3607 -572.615 44 -582 44L62 44C52.6151 44 43.8369 39.3607 38.5499 31.6066L25.9318 13.0999C20.3434 4.90373 11.0649 -2.59237e-05 1.1449 -2.54901e-05Z";
-function side(c,end){return '<svg class="side'+(end?' end':'')+'" viewBox="0 0 62 44" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="'+SH+'" fill="'+c+'"/></svg>';}
-var drawers=[
- {cat:"Technology", band:"#1E4BD7", cc:"#cfdbff", tabs:[
-   {n:"Anelo",c:"#1E4BD7",t:"#eef3ff",x:20,url:"anelo.io",href:"https://anelo.io",d:"A job-search platform that scans 8+ job boards daily, scores the best matches to your résumé, and delivers a curated digest to your inbox every morning."},
-   {n:"Sankotech Systems",c:"#F2C200",t:"#3a2f00",x:250,url:"sankotechsystems.com",href:"https://www.sankotechsystems.com",d:"A credible marketing site for an enterprise cybersecurity and AI-automation company — Silicon Valley meets West Africa. Services, positioning, and lead capture."}
- ]},
- {cat:"Creative", band:"#0C7866", cc:"#c7efe4", tabs:[
-   {n:"Pulse Immersive",c:"#0C7866",t:"#e6fff8",x:20,url:"pulseimmersive.com",href:"https://pulseimmersive.com",d:"Brand and site for an experiential marketing agency that builds immersive, in-person activations — club nights, day parties, wellness. “We build a world around your brand.”"},
-   {n:"Veloure",c:"#141414",t:"#f2f2f2",x:300,url:"veloure.studio",href:"https://www.veloure.studio",d:"A motion-led studio site — cinematic video, a custom cursor, and scroll-driven storytelling built for a high-craft creative brand."}
- ]},
- {cat:"Hospitality", band:"#581E70", cc:"#e2ccee", tabs:[
-   {n:"Smallcakes Fort Mill",c:"#581E70",t:"#f4e6fb",x:20,url:"smallcakesfortmillsc.com",href:"https://smallcakesfortmillsc.com",d:"A warm, appetite-first storefront for a cupcakery and creamery — twelve signature flavors baked daily, with menu, location, and ordering for a local franchise."},
-   {n:"Lulu Cafe",c:"#1E4BD7",t:"#eef3ff",x:340,url:"lulu-cafe.vercel.app",href:"https://lulu-cafe.vercel.app",d:"A neighborhood Oakland cafe on Franklin Street — “where every bite feels like home” — with menu and online ordering for pickup and delivery."}
- ]},
- {cat:"Professional", band:"#D71E1E", cc:"#ffd2d2", tabs:[
-   {n:"OTL Brokerage",c:"#D71E1E",t:"#ffecec",x:20,url:"otlbrokerage.com",href:"https://otlbrokerage.com",d:"A trust-forward site for a freight brokerage — a live dispatch board, 48-state coverage, and firm rates within the hour. “Freight that moves when you do.”"}
- ]}
-];
-var cab=document.getElementById('cabinet');
-drawers.forEach(function(dr,di){
-  var d=document.createElement('div');d.className='drawer';d.style.zIndex=di+1;
-  var tabsHtml=dr.tabs.map(function(f,ti){return '<div class="tag" data-x="'+f.x+'" style="left:'+f.x+'px;--t:'+f.t+'">'+
-    side(f.c,true)+'<div class="mid" style="background:'+f.c+'">'+f.n+'</div>'+side(f.c,false)+'</div>';}).join('');
-  var filesHtml=dr.tabs.map(function(f,ti){return '<div class="file" style="background:'+dr.band+'"><div class="sheet">'+
-    '<div class="meta"><span>'+f.n+'</span><span>'+dr.cat+'</span></div><p>'+f.d+'</p>'+
-    '<a class="visit" href="'+f.href+'" target="_blank" rel="noopener" style="background:'+f.c+';color:'+f.t+'">Visit '+f.url+' ↗</a></div></div>';}).join('');
-  d.innerHTML='<div class="tabrow">'+tabsHtml+'</div><div class="band" style="background:'+dr.band+'"><span class="cat" style="color:'+dr.cc+'"><span>'+dr.cat+'</span><span class="cat-arrow" aria-hidden="true">‹</span></span></div><div class="files">'+filesHtml+'</div>';
-  cab.appendChild(d);
-  var bandEl=d.querySelector('.band'),catEl=d.querySelector('.cat');
-  var tags=d.querySelectorAll('.tag'),files=d.querySelectorAll('.file');
-  dr.tabs.forEach(function(f,ti){
-    tags[ti].addEventListener('click',function(){
-      var file=files[ti];
-      var isOpen=file.style.maxHeight&&file.style.maxHeight!=='0px';
-      files.forEach(function(x){x.style.maxHeight='0px';x.style.background=dr.band;});
-      if(isOpen){ bandEl.style.background=dr.band; catEl.style.color=dr.cc; d.classList.remove('is-open'); }
-      else{
-        file.style.background=f.c;
-        file.style.maxHeight=(file.scrollHeight+40)+'px';
-        bandEl.style.background=f.c; catEl.style.color=f.t; d.classList.add('is-open');
-      }
+  <script>
+    const SH='M1.1449 -2.54901e-05L-521.145 -2.66006e-06C-531.065 -2.22644e-06 -540.343 4.90374 -545.932 13.0999L-558.55 31.6066C-563.837 39.3607 -572.615 44 -582 44L62 44C52.6151 44 43.8369 39.3607 38.5499 31.6066L25.9318 13.0999C20.3434 4.90373 11.0649 -2.59237e-05 1.1449 -2.54901e-05Z';
+    const side=(color,end)=>`<svg class="side${end?' end':''}" viewBox="0 0 62 44" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="${SH}" fill="${color}"/></svg>`;
+    const drawers=[
+      {cat:'Technology',band:'#1E4BD7',cc:'#cfdbff',tabs:[
+        {n:'Anelo',c:'#1E4BD7',t:'#eef3ff',x:20,url:'anelo.io',href:'https://anelo.io',d:'A job-search platform that scans 8+ job boards daily, scores the best matches to your résumé, and delivers a curated digest to your inbox every morning.'},
+        {n:'Sankotech Systems',c:'#F2C200',t:'#3a2f00',x:250,url:'sankotechsystems.com',href:'https://www.sankotechsystems.com',d:'A credible marketing site for an enterprise cybersecurity and AI-automation company — Silicon Valley meets West Africa. Services, positioning, and lead capture.'}
+      ]},
+      {cat:'Creative',band:'#0C7866',cc:'#c7efe4',tabs:[
+        {n:'Pulse Immersive',c:'#0C7866',t:'#e6fff8',x:20,url:'pulseimmersive.com',href:'https://pulseimmersive.com',d:'Brand and site for an experiential marketing agency that builds immersive, in-person activations — club nights, day parties, wellness. “We build a world around your brand.”'},
+        {n:'Veloure',c:'#141414',t:'#f2f2f2',x:300,url:'veloure.studio',href:'https://www.veloure.studio',d:'A motion-led studio site — cinematic video, a custom cursor, and scroll-driven storytelling built for a high-craft creative brand.'}
+      ]},
+      {cat:'Hospitality',band:'#581E70',cc:'#e2ccee',tabs:[
+        {n:'Smallcakes Fort Mill',c:'#581E70',t:'#f4e6fb',x:20,url:'smallcakesfortmillsc.com',href:'https://smallcakesfortmillsc.com',d:'A warm, appetite-first storefront for a cupcakery and creamery — twelve signature flavors baked daily, with menu, location, and ordering for a local franchise.'},
+        {n:'Lulu Cafe',c:'#1E4BD7',t:'#eef3ff',x:340,url:'lulu-cafe.vercel.app',href:'https://lulu-cafe.vercel.app',d:'A neighborhood Oakland cafe on Franklin Street — “where every bite feels like home” — with menu and online ordering for pickup and delivery.'}
+      ]},
+      {cat:'Professional',band:'#D71E1E',cc:'#ffd2d2',tabs:[
+        {n:'OTL Brokerage',c:'#D71E1E',t:'#ffecec',x:20,url:'otlbrokerage.com',href:'https://otlbrokerage.com',d:'A trust-forward site for a freight brokerage — a live dispatch board, 48-state coverage, and firm rates within the hour. “Freight that moves when you do.”'}
+      ]}
+    ];
+    const cab=document.getElementById('cabinet');
+    drawers.forEach((dr,di)=>{
+      const drawer=document.createElement('div');
+      drawer.className='drawer'; drawer.style.zIndex=di+1;
+      const tabs=dr.tabs.map(f=>`<div class="tag" data-x="${f.x}" style="left:${f.x}px;--t:${f.t}">${side(f.c,true)}<div class="mid" style="background:${f.c}">${f.n}</div>${side(f.c,false)}</div>`).join('');
+      const files=dr.tabs.map(f=>`<div class="file" style="background:${dr.band}"><div class="sheet"><div class="meta"><span>${f.n}</span><span>${dr.cat}</span></div><p>${f.d}</p><a class="visit" href="${f.href}" target="_blank" rel="noopener" style="background:${f.c};color:${f.t}">Visit ${f.url} ↗</a></div></div>`).join('');
+      drawer.innerHTML=`<div class="tabrow">${tabs}</div><div class="band" style="background:${dr.band}"><span class="cat" style="color:${dr.cc}"><span>${dr.cat}</span><span class="cat-arrow" aria-hidden="true">‹</span></span></div><div class="files">${files}</div>`;
+      cab.appendChild(drawer);
+      const band=drawer.querySelector('.band'), cat=drawer.querySelector('.cat');
+      const tags=drawer.querySelectorAll('.tag'), filesEls=drawer.querySelectorAll('.file');
+      dr.tabs.forEach((f,index)=>tags[index].addEventListener('click',()=>{
+        const file=filesEls[index],open=file.style.maxHeight&&file.style.maxHeight!=='0px';
+        filesEls.forEach(x=>{x.style.maxHeight='0px';x.style.background=dr.band});
+        if(open){drawer.classList.remove('is-open');band.style.background=dr.band;cat.style.color=dr.cc}
+        else{drawer.classList.add('is-open');file.style.background=f.c;file.style.maxHeight=(file.scrollHeight+40)+'px';band.style.background=f.c;cat.style.color=f.t}
+      }));
     });
-  });
-});
-function layout(){
-  var mobile=window.innerWidth<=640;
-  document.body.classList.toggle('compact',mobile);
-  var ds=document.querySelectorAll('.drawer');
-  ds.forEach(function(d,di){
-    d.style.marginTop = di ? (mobile?'-34px':'-46px') : (mobile?'10px':'20px');
-    var tags=[].slice.call(d.querySelectorAll('.tag'));
-    if(mobile){
-      var cursor=12;
-      tags.forEach(function(t){ t.style.left=cursor+'px'; cursor += t.getBoundingClientRect().width + 8; });
-    } else {
-      tags.forEach(function(t){ t.style.left=t.dataset.x+'px'; });
+    function layout(){
+      const mobile=innerWidth<=640;
+      document.body.classList.toggle('compact',mobile);
+      document.querySelectorAll('.drawer').forEach((drawer,index)=>{
+        drawer.style.marginTop=index?(mobile?'-34px':'-46px'):(mobile?'10px':'20px');
+        const tags=[...drawer.querySelectorAll('.tag')];
+        /* Keep each row as one clean, continuous run of tabs. The 1px overlap
+           removes the hairline seam at the two curved SVG edges. */
+        let cursor=mobile?12:20;
+        tags.forEach(tag=>{
+          tag.style.left=cursor+'px';
+          cursor+=tag.getBoundingClientRect().width-1;
+        });
+      });
     }
-  });
-}
-window.addEventListener('resize',layout);
-layout();
-</script>
+    addEventListener('resize',layout); addEventListener('load',layout); layout();
+  </script>
 </body>
 </html>
