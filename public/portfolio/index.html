@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Veloure — Selected Work</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;1,6..96,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root{
+      --bg:#0A0908;
+      --fg:#F5F2EC;
+      --fg-dim:rgba(245,242,236,.55);
+      --fg-faint:rgba(245,242,236,.28);
+      --hairline:rgba(245,242,236,.14);
+      --hairline-soft:rgba(245,242,236,.08);
+      --serif:'Bodoni Moda',Georgia,serif;
+      --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{-webkit-text-size-adjust:100%}
+    body{
+      background:var(--bg);
+      color:var(--fg);
+      font-family:var(--mono);
+      font-weight:300;
+      line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+      min-height:100vh;
+    }
+    a{color:inherit;text-decoration:none}
+
+    .wrap{
+      max-width:1080px;
+      margin:0 auto;
+      padding:clamp(2.2rem,6vw,5.5rem) clamp(1.4rem,5vw,3.5rem) clamp(3rem,7vw,6rem);
+    }
+
+    /* ---- Masthead ---- */
+    .mast{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:1.5rem;
+      padding-bottom:clamp(2.4rem,5vw,4rem);
+      border-bottom:1px solid var(--hairline);
+    }
+    .mark{
+      font-family:var(--serif);
+      font-weight:500;
+      font-size:clamp(1.5rem,2.4vw,2rem);
+      letter-spacing:.02em;
+    }
+    .mark span{font-style:italic;font-weight:400}
+    .mast-meta{
+      text-align:right;
+      font-size:.7rem;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color:var(--fg-dim);
+      line-height:2;
+    }
+
+    /* ---- Intro ---- */
+    .intro{
+      padding:clamp(2.6rem,6vw,4.6rem) 0 clamp(2rem,5vw,3.4rem);
+    }
+    .kicker{
+      font-size:.7rem;
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      color:var(--fg-faint);
+      margin-bottom:1.4rem;
+    }
+    .intro h1{
+      font-family:var(--serif);
+      font-weight:400;
+      font-size:clamp(2.4rem,6.5vw,4.8rem);
+      line-height:1.05;
+      letter-spacing:-.01em;
+      max-width:16ch;
+    }
+    .intro h1 em{font-style:italic;color:var(--fg-dim)}
+    .intro p{
+      margin-top:1.8rem;
+      max-width:52ch;
+      color:var(--fg-dim);
+      font-size:clamp(.85rem,1.4vw,.95rem);
+      line-height:1.75;
+    }
+
+    /* ---- Index list ---- */
+    .index{
+      border-top:1px solid var(--hairline);
+    }
+    .row{
+      display:grid;
+      grid-template-columns:3.2rem minmax(0,1fr) auto;
+      align-items:baseline;
+      gap:clamp(1rem,3vw,2.4rem);
+      padding:clamp(1.5rem,3.4vw,2.4rem) 0;
+      border-bottom:1px solid var(--hairline-soft);
+      position:relative;
+      transition:padding-left .5s cubic-bezier(.22,1,.36,.08);
+    }
+    .row::before{
+      content:"";
+      position:absolute;
+      left:-1.6rem;
+      top:0;bottom:0;
+      width:1px;
+      background:var(--fg);
+      transform:scaleY(0);
+      transform-origin:top;
+      transition:transform .5s cubic-bezier(.22,1,.36,.08);
+    }
+    @media(hover:hover){
+      .row:hover{padding-left:1.2rem}
+      .row:hover::before{transform:scaleY(1)}
+      .row:hover .num{color:var(--fg)}
+      .row:hover .name{color:var(--fg)}
+      .row:hover .go{opacity:1;transform:translateX(0)}
+    }
+    .num{
+      font-size:.72rem;
+      letter-spacing:.1em;
+      color:var(--fg-faint);
+      padding-top:.5rem;
+      transition:color .4s ease;
+    }
+    .body-col{min-width:0}
+    .cat{
+      font-size:.62rem;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+      color:var(--fg-faint);
+      margin-bottom:.7rem;
+    }
+    .name{
+      font-family:var(--serif);
+      font-weight:500;
+      font-size:clamp(1.7rem,4.2vw,2.9rem);
+      line-height:1.02;
+      letter-spacing:-.005em;
+      color:var(--fg);
+      transition:color .4s ease;
+    }
+    .desc{
+      margin-top:.75rem;
+      color:var(--fg-dim);
+      font-size:clamp(.8rem,1.3vw,.9rem);
+      line-height:1.65;
+      max-width:46ch;
+    }
+    .link-url{
+      display:inline-block;
+      margin-top:1rem;
+      font-size:.68rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--fg-faint);
+    }
+    .go{
+      align-self:center;
+      font-family:var(--serif);
+      font-style:italic;
+      font-size:1.3rem;
+      color:var(--fg-dim);
+      opacity:0;
+      transform:translateX(-8px);
+      transition:opacity .4s ease,transform .5s cubic-bezier(.22,1,.36,.08);
+      white-space:nowrap;
+    }
+    @media(hover:none){ .go{opacity:.5;transform:none} }
+
+    /* ---- Footer ---- */
+    .foot{
+      margin-top:clamp(3rem,7vw,5.5rem);
+      padding-top:2rem;
+      border-top:1px solid var(--hairline);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:1rem;
+      font-size:.68rem;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+      color:var(--fg-faint);
+    }
+    .foot a{color:var(--fg-dim);transition:color .3s ease}
+    .foot a:hover{color:var(--fg)}
+
+    @media(max-width:620px){
+      .row{grid-template-columns:2rem 1fr;grid-template-rows:auto auto}
+      .go{display:none}
+      .num{padding-top:.35rem}
+    }
+
+    /* entrance */
+    .reveal{opacity:0;transform:translateY(14px);animation:rise .9s cubic-bezier(.22,1,.36,.08) forwards}
+    @keyframes rise{to{opacity:1;transform:none}}
+    @media(prefers-reduced-motion:reduce){
+      .reveal{animation:none;opacity:1;transform:none}
+      .row,.row::before,.go{transition:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="mast reveal">
+      <div class="mark">Veloure<span>°</span></div>
+      <div class="mast-meta">
+        Web Design &amp; Development<br>
+        Selected Work — 2026
+      </div>
+    </header>
+
+    <section class="intro reveal" style="animation-delay:.08s">
+      <div class="kicker">Portfolio</div>
+      <h1>Sites built to <em>look</em> and <em>work</em> the part.</h1>
+      <p>A selection of live websites — from SaaS products and brand studios to hospitality and logistics. Each one designed, built, and shipped end to end. Every link below is live; click through to any of them.</p>
+    </section>
+
+    <main class="index">
+
+      <a class="row reveal" href="https://anelo.io" target="_blank" rel="noopener" style="animation-delay:.12s">
+        <div class="num">01</div>
+        <div class="body-col">
+          <div class="cat">Product · SaaS</div>
+          <div class="name">Anelo</div>
+          <p class="desc">A job-search platform that scans job boards daily, matches roles to your résumé, and delivers a curated digest to your inbox each morning.</p>
+          <span class="link-url">anelo.io ↗</span>
+        </div>
+        <div class="go">View →</div>
+      </a>
+
+      <a class="row reveal" href="https://pulseimmersive.com" target="_blank" rel="noopener" style="animation-delay:.16s">
+        <div class="num">02</div>
+        <div class="body-col">
+          <div class="cat">Agency · Experiential</div>
+          <div class="name">Pulse Immersive</div>
+          <p class="desc">Brand and site for an experiential marketing agency that builds immersive, in-person activations — “we build a world around your brand.”</p>
+          <span class="link-url">pulseimmersive.com ↗</span>
+        </div>
+        <div class="go">View →</div>
+      </a>
+
+      <a class="row reveal" href="https://www.sankotechsystems.com" target="_blank" rel="noopener" style="animation-delay:.2s">
+        <div class="num">03</div>
+        <div class="body-col">
+          <div class="cat">Enterprise · AI</div>
+          <div class="name">Sankotech Systems</div>
+          <p class="desc">A clean, credible marketing site for an AI-powered enterprise solutions company — positioning, services, and lead capture.</p>
+          <span class="link-url">sankotechsystems.com ↗</span>
+        </div>
+        <div class="go">View →</div>
+      </a>
+
+      <a class="row reveal" href="https://www.veloure.studio" target="_blank" rel="noopener" style="animation-delay:.24s">
+        <div class="num">04</div>
+        <div class="body-col">
+          <div class="cat">Studio · Creative</div>
+          <div class="name">Veloure</div>
+          <p class="desc">A motion-led studio site — cinematic video, custom cursor, and scroll-driven storytelling built for a high-craft creative brand.</p>
+          <span class="link-url">veloure.studio ↗</span>
+        </div>
+        <div class="go">View →</div>
+      </a>
+
+      <a class="row reveal" href="https://otlbrokerage.com" target="_blank" rel="noopener" style="animation-delay:.28s">
+        <div class="num">05</div>
+        <div class="body-col">
+          <div class="cat">Logistics · B2B</div>
+          <div class="name">OTL Brokerage</div>
+          <p class="desc">A trust-forward site for a freight brokerage — “your reliable freight partner” — designed to convert carriers and shippers alike.</p>
+          <span class="link-url">otlbrokerage.com ↗</span>
+        </div>
+        <div class="go">View →</div>
+      </a>
+
+      <a class="row reveal" href="https://www.smallcakesfortmill.com" target="_blank" rel="noopener" style="animation-delay:.32s">
+        <div class="num">06</div>
+        <div class="body-col">
+          <div class="cat">Retail · Food</div>
+          <div class="name">Smallcakes Fort Mill</div>
+          <p class="desc">A warm, appetite-first storefront for a cupcakery &amp; creamery — menu, location, and ordering for a local franchise.</p>
+          <span class="link-url">smallcakesfortmill.com ↗</span>
+        </div>
+        <div class="go">View →</div>
+      </a>
+
+      <a class="row reveal" href="https://lulu-cafe.vercel.app" target="_blank" rel="noopener" style="animation-delay:.36s">
+        <div class="num">07</div>
+        <div class="body-col">
+          <div class="cat">Hospitality</div>
+          <div class="name">Lulu Cafe</div>
+          <p class="desc">A neighborhood Oakland cafe site — “where every bite feels like home” — with menu and online ordering for pickup and delivery.</p>
+          <span class="link-url">lulu-cafe.vercel.app ↗</span>
+        </div>
+        <div class="go">View →</div>
+      </a>
+
+    </main>
+
+    <footer class="foot reveal" style="animation-delay:.4s">
+      <div>Veloure° — Selected Work</div>
+      <div>Available for new projects</div>
+    </footer>
+
+  </div>
+</body>
+</html>
