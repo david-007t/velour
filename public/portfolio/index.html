@@ -10,30 +10,47 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Archivo:wght@800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{background:#0D0C0B;color:#F3EFE7;font-family:'JetBrains Mono',monospace;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:1080px;margin:0 auto;padding:clamp(48px,7vw,72px) clamp(20px,5vw,40px) 110px}
-  .head{font-family:'Archivo',sans-serif;font-weight:900;text-transform:uppercase;line-height:.86;letter-spacing:-.025em;font-size:clamp(46px,9vw,86px)}
-  .sub{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#8a837a;margin:22px 0 50px;line-height:2;max-width:50ch}
+  html{height:100%}
+  body{min-height:100%;background:#0D0C0B;color:#F3EFE7;font-family:'JetBrains Mono',monospace;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{min-height:100vh;min-height:100dvh;max-width:1160px;margin:0 auto;padding:0 clamp(18px,5vw,48px);display:flex;flex-direction:column}
+  .hero{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,9vh,90px) 0 clamp(30px,6vh,60px)}
+  .head{font-family:'Archivo',sans-serif;font-weight:900;text-transform:uppercase;line-height:.86;letter-spacing:-.025em;font-size:clamp(46px,11vw,104px)}
+  .sub{font-size:clamp(11px,1.5vw,13px);letter-spacing:.2em;text-transform:uppercase;color:#8a837a;margin-top:24px;line-height:2;max-width:50ch}
+  .cabinet{flex:0 0 auto;padding-bottom:clamp(22px,4vh,50px)}
   .drawer{position:relative}
   .tabrow{position:relative;height:46px}
-  .tag{position:absolute;bottom:-1px;display:flex;align-items:stretch;height:46px;cursor:pointer}
+  .tag{position:absolute;bottom:-1px;display:flex;align-items:stretch;height:46px;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
   .side{width:42px;height:100%;display:block;flex:0 0 auto}
   .side.end{transform:scaleX(-1)}
-  .mid{color:var(--t);display:flex;align-items:center;font-family:'Newsreader',serif;font-weight:500;font-size:clamp(19px,3.4vw,25px);padding:0 6px;white-space:nowrap;margin:0 -1px}
+  .mid{color:var(--t);display:flex;align-items:center;font-family:'Newsreader',serif;font-weight:500;font-size:25px;padding:0 6px;white-space:nowrap;margin:0 -1px}
   .band{position:relative;padding:20px 26px;display:flex;align-items:center;justify-content:flex-end;border-radius:4px 4px 0 0;transition:background .4s ease}
   .cat{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;transition:color .4s ease}
   .file{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1),background .4s ease}
-  .sheet{margin:0 16px 60px;background:#F6F1E7;border-radius:4px;padding:22px 24px 24px;box-shadow:0 14px 36px rgba(0,0,0,.36)}
+  .sheet{margin:0 16px 58px;background:#F6F1E7;border-radius:4px;padding:22px 24px 24px;box-shadow:0 14px 36px rgba(0,0,0,.36)}
   .meta{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#b0a892;border-bottom:1px solid #e5ddca;padding-bottom:9px;margin-bottom:13px;display:flex;justify-content:space-between;gap:12px}
   .sheet p{font-family:'Newsreader',serif;font-size:16.5px;line-height:1.58;color:#2a2620;margin-bottom:18px}
   .visit{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:11px 18px;border-radius:4px;text-decoration:none}
+
+  body.compact .head{font-size:clamp(40px,13vw,66px)}
+  body.compact .sub{margin-top:18px;letter-spacing:.16em}
+  body.compact .tabrow,body.compact .tag{height:34px}
+  body.compact .side{width:26px}
+  body.compact .mid{font-size:15px;padding:0 4px}
+  body.compact .band{padding:13px 16px}
+  body.compact .cat{font-size:9px;letter-spacing:.12em}
+  body.compact .sheet{margin:0 10px 44px;padding:16px 16px 18px}
+  body.compact .meta{font-size:9px}
+  body.compact .sheet p{font-size:14px;line-height:1.5}
+  body.compact .visit{font-size:9.5px;padding:9px 13px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="head">Selected<br>Work</div>
-  <div class="sub">Seven live sites, filed by craft. Pull a tab to open the file.</div>
-  <div id="cabinet"></div>
+  <div class="hero">
+    <div class="head">Selected<br>Work</div>
+    <div class="sub">Seven live sites, filed by craft. Pull a tab to open the file.</div>
+  </div>
+  <div class="cabinet" id="cabinet"></div>
 </div>
 <script>
 var SH="M1.1449 -2.54901e-05L-521.145 -2.66006e-06C-531.065 -2.22644e-06 -540.343 4.90374 -545.932 13.0999L-558.55 31.6066C-563.837 39.3607 -572.615 44 -582 44L62 44C52.6151 44 43.8369 39.3607 38.5499 31.6066L25.9318 13.0999C20.3434 4.90373 11.0649 -2.59237e-05 1.1449 -2.54901e-05Z";
@@ -57,8 +74,8 @@ var drawers=[
 ];
 var cab=document.getElementById('cabinet');
 drawers.forEach(function(dr,di){
-  var d=document.createElement('div');d.className='drawer';d.style.zIndex=di+1;d.style.marginTop=di?'-46px':'20px';
-  var tabsHtml=dr.tabs.map(function(f,ti){return '<div class="tag" style="left:'+f.x+'px;--t:'+f.t+'">'+
+  var d=document.createElement('div');d.className='drawer';d.style.zIndex=di+1;
+  var tabsHtml=dr.tabs.map(function(f,ti){return '<div class="tag" data-x="'+f.x+'" style="left:'+f.x+'px;--t:'+f.t+'">'+
     side(f.c,true)+'<div class="mid" style="background:'+f.c+'">'+f.n+'</div>'+side(f.c,false)+'</div>';}).join('');
   var filesHtml=dr.tabs.map(function(f,ti){return '<div class="file" style="background:'+dr.band+'"><div class="sheet">'+
     '<div class="meta"><span>'+f.n+'</span><span>'+dr.cat+'</span></div><p>'+f.d+'</p>'+
@@ -81,6 +98,23 @@ drawers.forEach(function(dr,di){
     });
   });
 });
+function layout(){
+  var mobile=window.innerWidth<=640;
+  document.body.classList.toggle('compact',mobile);
+  var ds=document.querySelectorAll('.drawer');
+  ds.forEach(function(d,di){
+    d.style.marginTop = di ? (mobile?'-34px':'-46px') : (mobile?'10px':'20px');
+    var tags=[].slice.call(d.querySelectorAll('.tag'));
+    if(mobile){
+      var cursor=12;
+      tags.forEach(function(t){ t.style.left=cursor+'px'; cursor += t.getBoundingClientRect().width + 8; });
+    } else {
+      tags.forEach(function(t){ t.style.left=t.dataset.x+'px'; });
+    }
+  });
+}
+window.addEventListener('resize',layout);
+layout();
 </script>
 </body>
 </html>
