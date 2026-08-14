@@ -24,7 +24,9 @@
   .side.end{transform:scaleX(-1)}
   .mid{color:var(--t);display:flex;align-items:center;font-family:'Newsreader',serif;font-weight:500;font-size:25px;padding:0 6px;white-space:nowrap;margin:0 -1px}
   .band{position:relative;padding:20px 26px;display:flex;align-items:center;justify-content:flex-end;border-radius:4px 4px 0 0;transition:background .4s ease}
-  .cat{font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;transition:color .4s ease}
+  .cat{display:flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;transition:color .4s ease}
+  .cat-arrow{display:inline-block;font-size:21px;line-height:.7;transform-origin:center;transition:transform .35s cubic-bezier(.4,0,.2,1)}
+  .drawer.is-open .cat-arrow{transform:rotate(-90deg)}
   .file{max-height:0;overflow:hidden;transition:max-height .5s cubic-bezier(.4,0,.2,1),background .4s ease}
   .sheet{margin:0 16px 58px;background:#F6F1E7;border-radius:4px;padding:22px 24px 24px;box-shadow:0 14px 36px rgba(0,0,0,.36)}
   .meta{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#b0a892;border-bottom:1px solid #e5ddca;padding-bottom:9px;margin-bottom:13px;display:flex;justify-content:space-between;gap:12px}
@@ -37,7 +39,8 @@
   body.compact .side{width:26px}
   body.compact .mid{font-size:15px;padding:0 4px}
   body.compact .band{padding:13px 16px}
-  body.compact .cat{font-size:9px;letter-spacing:.12em}
+  body.compact .cat{font-size:9px;letter-spacing:.12em;gap:7px}
+  body.compact .cat-arrow{font-size:15px}
   body.compact .sheet{margin:0 10px 44px;padding:16px 16px 18px}
   body.compact .meta{font-size:9px}
   body.compact .sheet p{font-size:14px;line-height:1.5}
@@ -80,7 +83,7 @@ drawers.forEach(function(dr,di){
   var filesHtml=dr.tabs.map(function(f,ti){return '<div class="file" style="background:'+dr.band+'"><div class="sheet">'+
     '<div class="meta"><span>'+f.n+'</span><span>'+dr.cat+'</span></div><p>'+f.d+'</p>'+
     '<a class="visit" href="'+f.href+'" target="_blank" rel="noopener" style="background:'+f.c+';color:'+f.t+'">Visit '+f.url+' ↗</a></div></div>';}).join('');
-  d.innerHTML='<div class="tabrow">'+tabsHtml+'</div><div class="band" style="background:'+dr.band+'"><span class="cat" style="color:'+dr.cc+'">'+dr.cat+'</span></div><div class="files">'+filesHtml+'</div>';
+  d.innerHTML='<div class="tabrow">'+tabsHtml+'</div><div class="band" style="background:'+dr.band+'"><span class="cat" style="color:'+dr.cc+'"><span>'+dr.cat+'</span><span class="cat-arrow" aria-hidden="true">‹</span></span></div><div class="files">'+filesHtml+'</div>';
   cab.appendChild(d);
   var bandEl=d.querySelector('.band'),catEl=d.querySelector('.cat');
   var tags=d.querySelectorAll('.tag'),files=d.querySelectorAll('.file');
@@ -89,11 +92,11 @@ drawers.forEach(function(dr,di){
       var file=files[ti];
       var isOpen=file.style.maxHeight&&file.style.maxHeight!=='0px';
       files.forEach(function(x){x.style.maxHeight='0px';x.style.background=dr.band;});
-      if(isOpen){ bandEl.style.background=dr.band; catEl.style.color=dr.cc; }
+      if(isOpen){ bandEl.style.background=dr.band; catEl.style.color=dr.cc; d.classList.remove('is-open'); }
       else{
         file.style.background=f.c;
         file.style.maxHeight=(file.scrollHeight+40)+'px';
-        bandEl.style.background=f.c; catEl.style.color=f.t;
+        bandEl.style.background=f.c; catEl.style.color=f.t; d.classList.add('is-open');
       }
     });
   });
