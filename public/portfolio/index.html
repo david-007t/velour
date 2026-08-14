@@ -36,12 +36,11 @@
     .visit{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:11px 18px;border-radius:4px;text-decoration:none}
     body.compact .head{font-size:clamp(40px,13vw,66px)}
     body.compact .sub{margin-top:18px;letter-spacing:.16em}
-    body.compact .tabrow,body.compact .tag{height:34px}
+    body.compact .tabrow,body.compact .tag{height:40px}
     body.compact .side{width:26px}
     body.compact .mid{font-size:15px;padding:0 4px}
-    body.compact .band{padding:13px 16px}
-    body.compact .cat{font-size:9px;letter-spacing:.12em;gap:10px}
-    body.compact .cat-arrow{font-size:16px}
+    body.compact .band{padding:25px 16px}
+    body.compact .cat{display:none}
     body.compact .sheet{margin:0 10px 44px;padding:16px 16px 18px}
     body.compact .meta{font-size:9px}
     body.compact .sheet p{font-size:14px;line-height:1.5}
@@ -97,7 +96,7 @@
       const mobile=innerWidth<=640;
       document.body.classList.toggle('compact',mobile);
       document.querySelectorAll('.drawer').forEach((drawer,index)=>{
-        drawer.style.marginTop=index?(mobile?'-34px':'-46px'):(mobile?'10px':'20px');
+        drawer.style.marginTop=index?(mobile?'-40px':'-46px'):(mobile?'10px':'20px');
         const tags=[...drawer.querySelectorAll('.tag')];
         /* Keep each row as one clean, continuous run of tabs. The 1px overlap
            removes the hairline seam at the two curved SVG edges. */
