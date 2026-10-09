@@ -9,23 +9,45 @@ import { useEffect, useRef } from 'react';
  * The video is only mounted when `open` is true, so no decoder is
  * allocated until the user actually opens it.
  */
-export default function VideoModal({ src, open, onClose }) {
+export default function VideoModal({ src, poster, label, open, onClose }) {
   const videoRef = useRef(null);
+  const closeRef = useRef(null);
+  // Callers pass inline closures; keep the latest without re-running
+  // the open/close effect (which would steal focus on every render).
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
-  // Close on Escape; lock body scroll while open.
+  // Close on Escape; keep Tab inside the dialog; lock body scroll
+  // while open; hand focus back to whatever opened it on close.
   useEffect(() => {
     if (!open) return undefined;
+    const opener = document.activeElement;
     const onKey = (e) => {
-      if (e.key === 'Escape') onClose?.();
+      if (e.key === 'Escape') {
+        // Capture phase + stop so the split-screen's own Escape
+        // handler doesn't also collapse the chosen path.
+        e.stopPropagation();
+        onCloseRef.current?.();
+        return;
+      }
+      if (e.key === 'Tab') {
+        const items = [videoRef.current, closeRef.current].filter(Boolean);
+        const i = items.indexOf(document.activeElement);
+        e.preventDefault();
+        const next = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : (i + 1) % items.length;
+        items[next].focus();
+      }
     };
-    window.addEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
     return () => {
-      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('keydown', onKey, true);
       document.body.style.overflow = prevOverflow;
+      if (opener && typeof opener.focus === 'function') opener.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
@@ -33,6 +55,7 @@ export default function VideoModal({ src, open, onClose }) {
     <div
       role="dialog"
       aria-modal="true"
+      aria-label={label || 'Video player'}
       onClick={(e) => {
         // close when clicking the backdrop (but not when clicking the video itself)
         if (e.target === e.currentTarget) onClose?.();
@@ -52,6 +75,7 @@ export default function VideoModal({ src, open, onClose }) {
       <video
         ref={videoRef}
         src={src}
+        poster={poster}
         autoPlay
         controls
         playsInline
@@ -68,6 +92,7 @@ export default function VideoModal({ src, open, onClose }) {
       />
 
       <button
+        ref={closeRef}
         type="button"
         onClick={onClose}
         aria-label="Close video"

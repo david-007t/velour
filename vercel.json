@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/pulse", "destination": "/pulse.html" },
+    { "source": "/pulse/", "destination": "/pulse.html" }
+  ]
+}

@@ -1,65 +1,57 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { debugFlags } from '../lib/debugFlags';
 
+// Each side is a path the visitor can choose. Order = left → right
+// (top → bottom on mobile).
+const DEFAULT_SIDES = [
+  { id: 'speed', label: 'Speed', video: '/loops/hero.mp4',                 poster: '/speed-poster.jpg' },
+  { id: 'focus', label: 'Focus', video: '/loops/p2w-arcana.mp4',           poster: '/focus-poster.jpg' },
+  { id: 'pulse', label: 'Pulse', video: '/loops/pulse/robotics-story.mp4', poster: '/posters/pulse/robotics-story.jpg' },
+];
+
+const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
+
 export default function SplitScreenEntry({
-  leftVideo = '/loops/hero.mp4',
-  rightVideo = '/loops/p2w-arcana.mp4',
-  leftPoster = '/speed-poster.jpg',
-  rightPoster = '/focus-poster.jpg',
+  sides = DEFAULT_SIDES,
   selectedPath = null,
   onSelectPath,
 }) {
   const [hoveredSide, setHoveredSide] = useState(null);
-  const [selectedSide, setSelectedSide] = useState(null);
   const containerRef = useRef(null);
-  const leftVideoRef = useRef(null);
-  const rightVideoRef = useRef(null);
-  const [sectionTop, setSectionTop] = useState(0);
+  const videoRefs = useRef({});
   const [isMobile, setIsMobile] = useState(false);
 
+  const selectedSide = selectedPath;
+
   useEffect(() => {
-    if (!selectedPath) {
-      setSelectedSide(null);
-      setHoveredSide(null);
-    } else {
-      setSelectedSide(selectedPath === 'speed' ? 'left' : 'right');
-    }
+    if (!selectedPath) setHoveredSide(null);
   }, [selectedPath]);
 
-  const leftSize = selectedSide === 'left'
-    ? '100%'
-    : selectedSide === 'right'
-      ? '0%'
-      : hoveredSide === 'left'
-        ? '70%'
-        : hoveredSide === 'right'
-          ? '30%'
-          : '50%';
-  const rightSize = selectedSide === 'right'
-    ? '100%'
-    : selectedSide === 'left'
-      ? '0%'
-      : hoveredSide === 'right'
-        ? '70%'
-        : hoveredSide === 'left'
-          ? '30%'
-          : '50%';
-
-  const handleClick = (side) => {
-    setSelectedSide(side);
-    if (onSelectPath) onSelectPath(side === 'left' ? 'speed' : 'focus');
+  // Rest: equal split. Hover: hovered side takes half, others share
+  // the rest. Selected: chosen side fills the screen.
+  const restShare = 100 / sides.length;
+  const otherShare = 50 / (sides.length - 1);
+  const sizeFor = (id) => {
+    if (selectedSide) return selectedSide === id ? '100%' : '0%';
+    if (hoveredSide) return hoveredSide === id ? '50%' : `${otherShare}%`;
+    return `${restShare}%`;
   };
 
-  const handleSidePress = (side) => {
-    if (isMobile && !selectedSide && hoveredSide !== side) {
-      setHoveredSide(side);
+  const handleClick = (id) => {
+    if (onSelectPath) onSelectPath(id);
+  };
+
+  // Mobile has no hover, so the first tap previews (expands) a side
+  // and the second tap opens it.
+  const handleSidePress = (id) => {
+    if (isMobile && !selectedSide && hoveredSide !== id) {
+      setHoveredSide(id);
       return;
     }
-    handleClick(side);
+    handleClick(id);
   };
 
   const handleUnselect = () => {
-    setSelectedSide(null);
     setHoveredSide(null);
     if (onSelectPath) onSelectPath(null);
   };
@@ -75,10 +67,7 @@ export default function SplitScreenEntry({
   }, [selectedSide]);
 
   useLayoutEffect(() => {
-    const update = () => {
-      if (containerRef.current) setSectionTop(containerRef.current.offsetTop);
-      setIsMobile(window.innerWidth < 768);
-    };
+    const update = () => setIsMobile(window.innerWidth < 768);
     update();
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
@@ -88,24 +77,16 @@ export default function SplitScreenEntry({
   // Priority: selected (post-click) > hovered.
   useEffect(() => {
     const playing = selectedSide || hoveredSide;
-    const left = leftVideoRef.current;
-    const right = rightVideoRef.current;
-
-    if (left) {
-      if (playing === 'left') left.play().catch(() => {});
+    sides.forEach(({ id }) => {
+      const v = videoRefs.current[id];
+      if (!v) return;
+      if (playing === id) v.play().catch(() => {});
       else {
-        left.pause();
-        try { left.currentTime = 0; } catch (error) { /* ignore seek restrictions */ }
+        v.pause();
+        try { v.currentTime = 0; } catch (error) { /* ignore seek restrictions */ }
       }
-    }
-    if (right) {
-      if (playing === 'right') right.play().catch(() => {});
-      else {
-        right.pause();
-        try { right.currentTime = 0; } catch (error) { /* ignore seek restrictions */ }
-      }
-    }
-  }, [hoveredSide, selectedSide]);
+    });
+  }, [hoveredSide, selectedSide, sides]);
 
   const videoStyle = {
     position: 'absolute',
@@ -124,20 +105,21 @@ export default function SplitScreenEntry({
     height: '100%',
     transition: 'background-color 0.3s ease',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     pointerEvents: 'none',
   };
 
-  // When one side is hovered, the OTHER side's label dims + shrinks.
+  // When one side is hovered, the OTHER sides' labels dim + shrink.
   // Same treatment when one side is selected.
-  const labelStyleFor = (side) => {
-    const active = selectedSide === side || (!selectedSide && hoveredSide === side);
+  const labelStyleFor = (id) => {
+    const active = selectedSide === id || (!selectedSide && hoveredSide === id);
     const other = (selectedSide || hoveredSide) && !active;
     return {
       color: 'white',
       fontFamily: 'var(--display)',
-      fontSize: 'clamp(44px, 8vw, 132px)',
+      fontSize: isMobile ? 'clamp(40px, 12vw, 64px)' : 'clamp(40px, 6.2vw, 112px)',
       fontWeight: 400,
       textTransform: 'uppercase',
       letterSpacing: '0',
@@ -150,10 +132,32 @@ export default function SplitScreenEntry({
     };
   };
 
+  // Small "open" cue under the label so the panels read as clickable.
+  const cueStyleFor = (id) => {
+    const active = !selectedSide && hoveredSide === id;
+    return {
+      marginTop: 18,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      fontFamily: 'var(--mono)',
+      fontSize: 10.5,
+      letterSpacing: '0.22em',
+      textTransform: 'uppercase',
+      color: 'rgba(245,242,236,0.9)',
+      textShadow: '0 2px 12px rgba(0,0,0,0.6)',
+      whiteSpace: 'nowrap',
+      opacity: selectedSide ? 0 : active ? 1 : (hoveredSide ? 0 : 0.55),
+      transform: active ? 'translateY(0)' : 'translateY(6px)',
+      transition: 'opacity 0.45s cubic-bezier(.2,.6,.2,1), transform 0.45s cubic-bezier(.2,.6,.2,1)',
+    };
+  };
+
   return (
     <section
       data-section="choice"
       ref={containerRef}
+      aria-label="Choose a body of work"
       style={{
         position: 'relative',
         width: '100%',
@@ -164,69 +168,105 @@ export default function SplitScreenEntry({
         background: '#000',
       }}
     >
-      <div
-        style={{
-          position: 'relative',
-          width: isMobile ? '100%' : leftSize,
-          height: isMobile ? leftSize : '100%',
-          overflow: 'hidden',
-          transition: isMobile
-            ? 'height 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
-            : 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-          cursor: 'pointer',
-        }}
-        onMouseEnter={() => !selectedSide && setHoveredSide('left')}
-        onMouseLeave={() => !selectedSide && setHoveredSide(null)}
-        onClick={() => handleSidePress('left')}
-      >
-        {!debugFlags.noVideos && (
-          <video ref={leftVideoRef} loop muted playsInline preload="metadata" poster={leftPoster} style={videoStyle}>
-            <source src={leftVideo} type="video/mp4" />
-          </video>
-        )}
-        <div
-          style={{
-            ...baseOverlayStyle,
-            backgroundColor: hoveredSide === 'left' || selectedSide === 'left'
-              ? 'rgba(0, 0, 0, 0.1)'
-              : 'rgba(0, 0, 0, 0.4)',
-          }}
-        >
-          <div style={labelStyleFor('left')}>Speed</div>
-        </div>
-      </div>
+      {sides.map((side) => {
+        const size = sizeFor(side.id);
+        const lit = hoveredSide === side.id || selectedSide === side.id;
+        const collapsed = selectedSide && selectedSide !== side.id;
+        const showOpenCue = isMobile ? hoveredSide === side.id : true;
+        return (
+          <div
+            key={side.id}
+            className="split-side"
+            role="button"
+            tabIndex={collapsed || selectedSide ? -1 : 0}
+            aria-hidden={collapsed ? true : undefined}
+            aria-label={`Open ${side.label}`}
+            data-interactive=""
+            style={{
+              position: 'relative',
+              flex: 'none',
+              width: isMobile ? '100%' : size,
+              height: isMobile ? size : '100%',
+              overflow: 'hidden',
+              transition: isMobile ? `height 0.6s ${EASE}` : `width 0.6s ${EASE}`,
+              cursor: selectedSide ? 'default' : 'pointer',
+            }}
+            onMouseEnter={() => !selectedSide && !isMobile && setHoveredSide(side.id)}
+            onMouseLeave={() => !selectedSide && !isMobile && setHoveredSide(null)}
+            // Keyboard focus only — a tap also focuses, and must not
+            // count as the mobile "first tap".
+            onFocus={(e) => {
+              if (!selectedSide && e.currentTarget.matches(':focus-visible')) setHoveredSide(side.id);
+            }}
+            onBlur={() => !selectedSide && setHoveredSide(null)}
+            onClick={() => !selectedSide && handleSidePress(side.id)}
+            onKeyDown={(e) => {
+              if (selectedSide) return;
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick(side.id);
+              }
+            }}
+          >
+            {!debugFlags.noVideos && (
+              <video
+                ref={(el) => { videoRefs.current[side.id] = el; }}
+                loop
+                muted
+                playsInline
+                preload="metadata"
+                poster={side.poster}
+                style={videoStyle}
+              >
+                <source src={side.video} type="video/mp4" />
+              </video>
+            )}
+            <div
+              style={{
+                ...baseOverlayStyle,
+                backgroundColor: lit ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.4)',
+              }}
+            >
+              <div style={labelStyleFor(side.id)}>{side.label}</div>
+              <div style={cueStyleFor(side.id)} aria-hidden="true">
+                {showOpenCue && (
+                  <>
+                    <span>{isMobile ? 'Tap to open' : 'View work'}</span>
+                    <span style={{ width: 22, height: 1, background: 'currentColor', display: 'block' }} />
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })}
 
+      {/* Scroll cue once a path is chosen. */}
       <div
+        aria-hidden="true"
         style={{
-          position: 'relative',
-          flex: isMobile ? 'none' : 1,
-          width: isMobile ? '100%' : 'auto',
-          height: isMobile ? rightSize : '100%',
-          overflow: 'hidden',
-          transition: isMobile ? 'height 0.6s cubic-bezier(0.4, 0, 0.2, 1)' : undefined,
-          cursor: 'pointer',
+          position: 'absolute',
+          left: '50%',
+          bottom: 'clamp(24px, 5vh, 44px)',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 10,
+          fontFamily: 'var(--mono)',
+          fontSize: 9.5,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: 'rgba(245,242,236,0.75)',
+          textShadow: '0 2px 12px rgba(0,0,0,0.6)',
+          opacity: selectedSide ? 1 : 0,
+          transition: 'opacity 600ms cubic-bezier(.2,.6,.2,1) 500ms',
+          pointerEvents: 'none',
         }}
-        onMouseEnter={() => !selectedSide && setHoveredSide('right')}
-        onMouseLeave={() => !selectedSide && setHoveredSide(null)}
-        onClick={() => handleSidePress('right')}
       >
-        {!debugFlags.noVideos && (
-          <video ref={rightVideoRef} loop muted playsInline preload="metadata" poster={rightPoster} style={videoStyle}>
-            <source src={rightVideo} type="video/mp4" />
-          </video>
-        )}
-        <div
-          style={{
-            ...baseOverlayStyle,
-            backgroundColor: hoveredSide === 'right' || selectedSide === 'right'
-              ? 'rgba(0, 0, 0, 0.1)'
-              : 'rgba(0, 0, 0, 0.4)',
-          }}
-        >
-          <div style={labelStyleFor('right')}>Focus</div>
-        </div>
+        <span>Scroll</span>
+        <span className="scroll-cue-line" />
       </div>
-
     </section>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Scroll, useIsMobile } from './lib/ScrollContext';
 import HomeSection from './sections/HomeSection';
 import SplitScreenEntry from './sections/SplitScreenEntry';
+import PulseSection from './sections/PulseSection';
 import LoadingOverlay from './fx/LoadingOverlay';
 import VideoPanel from './fx/VideoPanel';
 import OutroVideoPanel from './fx/OutroVideoPanel';
@@ -22,7 +23,8 @@ const SECTIONS_META = [
   { id: 'home',    label: 'Home',    num: '01' },
   { id: 'speed',   label: 'Speed',   num: '02' },
   { id: 'focus',   label: 'Focus',   num: '03' },
-  { id: 'contact', label: 'Contact', num: '04' },
+  { id: 'pulse',   label: 'Pulse',   num: '04' },
+  { id: 'contact', label: 'Contact', num: '05' },
 ];
 
 // Bucket panels — each shows a tiny 5s muted preview loop. Click
@@ -195,6 +197,15 @@ export default function App() {
   // Ref so event handlers always see current selectedPath
   const selectedPathRef = useRef(null);
   useEffect(() => { selectedPathRef.current = selectedPath; }, [selectedPath]);
+
+  // Choosing Pulse puts its shareable URL in the bar (and backing out
+  // restores /) without a navigation, so a copied link opens /pulse.
+  useEffect(() => {
+    const path = selectedPath === 'pulse' ? '/pulse' : '/';
+    if (window.location.pathname !== path) {
+      window.history.replaceState(null, '', path + window.location.search);
+    }
+  }, [selectedPath]);
 
   // Apply CSS font variables
   useEffect(() => {
@@ -369,7 +380,8 @@ export default function App() {
         >
           <SplitScreenEntry selectedPath={selectedPath} onSelectPath={setSelectedPath} />
         </HomeSection>
-        {selectedPath && (() => {
+        {selectedPath === 'pulse' && <PulseSection />}
+        {selectedPath && selectedPath !== 'pulse' && (() => {
           const panels = selectedPath === 'focus' ? FOCUS_PANELS : SPEED_PANELS;
           return panels.map((p, i) => {
             const isLast = i === panels.length - 1;
