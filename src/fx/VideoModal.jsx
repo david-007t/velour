@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * Full-screen modal that plays a single video with native controls
@@ -16,6 +16,8 @@ export default function VideoModal({ src, poster, label, open, onClose }) {
   // the open/close effect (which would steal focus on every render).
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(false); }, [src, open]);
 
   // Close on Escape; keep Tab inside the dialog; lock body scroll
   // while open; hand focus back to whatever opened it on close.
@@ -31,7 +33,9 @@ export default function VideoModal({ src, poster, label, open, onClose }) {
         return;
       }
       if (e.key === 'Tab') {
-        const items = [videoRef.current, closeRef.current].filter(Boolean);
+        const dialog = closeRef.current?.closest('[role="dialog"]');
+        const items = dialog ? [...dialog.querySelectorAll('video, button')] : [];
+        if (!items.length) return;
         const i = items.indexOf(document.activeElement);
         e.preventDefault();
         const next = e.shiftKey ? (i <= 0 ? items.length - 1 : i - 1) : (i + 1) % items.length;
@@ -89,7 +93,25 @@ export default function VideoModal({ src, poster, label, open, onClose }) {
           cursor: 'default',
         }}
         onClick={(e) => e.stopPropagation()}
+        onError={() => setFailed(true)}
       />
+
+      {failed && (
+        <div className="modal-error" role="alert" onClick={(e) => e.stopPropagation()}>
+          <p>This film couldn’t load. Check your connection and try again.</p>
+          <button
+            type="button"
+            data-interactive=""
+            onClick={() => {
+              setFailed(false);
+              const v = videoRef.current;
+              if (v) { v.load(); v.play().catch(() => {}); }
+            }}
+          >
+            Try again
+          </button>
+        </div>
+      )}
 
       <button
         ref={closeRef}

@@ -1,13 +1,17 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { debugFlags } from '../lib/debugFlags';
+import { CATEGORIES, categoryById } from '../lib/categories';
+import { useReducedMotion } from '../lib/useReducedMotion';
+import PanelChrome from '../fx/PanelChrome';
 
-// Each side is a path the visitor can choose. Order = left → right
+// Each side is a category the visitor can choose. Order = left → right
 // (top → bottom on mobile).
-const DEFAULT_SIDES = [
-  { id: 'speed', label: 'Speed', video: '/loops/hero.mp4',                 poster: '/speed-poster.jpg' },
-  { id: 'focus', label: 'Focus', video: '/loops/p2w-arcana.mp4',           poster: '/focus-poster.jpg' },
-  { id: 'pulse', label: 'Pulse', video: '/loops/pulse/robotics-story.mp4', poster: '/posters/pulse/robotics-story.jpg' },
-];
+const DEFAULT_SIDES = CATEGORIES.map((c) => ({
+  id: c.id,
+  label: c.label,
+  video: c.hero.video,
+  poster: c.hero.poster,
+}));
 
 const EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
@@ -15,11 +19,13 @@ export default function SplitScreenEntry({
   sides = DEFAULT_SIDES,
   selectedPath = null,
   onSelectPath,
+  onViewFilms,
 }) {
   const [hoveredSide, setHoveredSide] = useState(null);
   const containerRef = useRef(null);
   const videoRefs = useRef({});
   const [isMobile, setIsMobile] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   const selectedSide = selectedPath;
 
@@ -80,13 +86,13 @@ export default function SplitScreenEntry({
     sides.forEach(({ id }) => {
       const v = videoRefs.current[id];
       if (!v) return;
-      if (playing === id) v.play().catch(() => {});
+      if (playing === id && !reducedMotion) v.play().catch(() => {});
       else {
         v.pause();
         try { v.currentTime = 0; } catch (error) { /* ignore seek restrictions */ }
       }
     });
-  }, [hoveredSide, selectedSide, sides]);
+  }, [hoveredSide, selectedSide, sides, reducedMotion]);
 
   const videoStyle = {
     position: 'absolute',
@@ -241,32 +247,24 @@ export default function SplitScreenEntry({
         );
       })}
 
-      {/* Scroll cue once a path is chosen. */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          left: '50%',
-          bottom: 'clamp(24px, 5vh, 44px)',
-          transform: 'translateX(-50%)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 10,
-          fontFamily: 'var(--mono)',
-          fontSize: 9.5,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-          color: 'rgba(245,242,236,0.75)',
-          textShadow: '0 2px 12px rgba(0,0,0,0.6)',
-          opacity: selectedSide ? 1 : 0,
-          transition: 'opacity 600ms cubic-bezier(.2,.6,.2,1) 500ms',
-          pointerEvents: 'none',
-        }}
-      >
-        <span>Scroll</span>
-        <span className="scroll-cue-line" />
-      </div>
+      {/* Category intro: once a side fills the screen it becomes the
+          category's title card — same overlay as every film panel. */}
+      {(() => {
+        const cat = categoryById(selectedSide);
+        if (!cat) return null;
+        return (
+          <PanelChrome
+            key={cat.id}
+            eyebrow={`Veloure · ${String(CATEGORIES.indexOf(cat) + 1).padStart(2, '0')} / ${String(CATEGORIES.length).padStart(2, '0')}`}
+            title={cat.label}
+            titleAs="h1"
+            display
+            description={cat.description}
+            next={onViewFilms ? { label: `View ${cat.films.length} films`, onClick: onViewFilms } : undefined}
+            style={{ zIndex: 5, animation: 'chrome-in 900ms cubic-bezier(.16,1,.3,1) 350ms both' }}
+          />
+        );
+      })()}
     </section>
   );
 }

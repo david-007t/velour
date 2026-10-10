@@ -2,9 +2,10 @@ import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// /pulse is its own HTML entry (outreach link: own meta tags, no
-// homepage intro). Vercel maps the clean URL via vercel.json; this
-// does the same for the dev server.
+// /pulse gets its own HTML shell so outreach links unfurl with Pulse's
+// title + preview image; it boots the same app, which opens straight
+// into Pulse. Vercel maps the clean URL via vercel.json; this does the
+// same for the dev server.
 const pulseRoute = () => ({
   name: 'pulse-route',
   configureServer(server) {

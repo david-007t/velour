@@ -4,6 +4,9 @@ import { clamp01 } from '../lib/easing';
 import { attachHls } from '../lib/hls';
 import { debugFlags } from '../lib/debugFlags';
 import MeshBackground from './MeshBackground';
+import PanelChrome from './PanelChrome';
+import { useReducedMotion } from '../lib/useReducedMotion';
+import { CONTACT_LABEL } from '../lib/categories';
 
 /**
  * Last panel of a bucket. Behaves like a normal VideoPanel at the
@@ -27,6 +30,8 @@ export default function OutroVideoPanel({
   mission,
   contactEmail,
   onOpen,
+  chrome,
+  filmIndex,
 }) {
   const { y, vh } = useContext(Scroll);
   const sectionRef = useRef(null);
@@ -37,6 +42,7 @@ export default function OutroVideoPanel({
   const [shouldLoad, setShouldLoad] = useState(false);
   const [inView, setInView] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   useLayoutEffect(() => {
     const update = () => {
@@ -87,19 +93,19 @@ export default function OutroVideoPanel({
   }, []);
 
   useEffect(() => {
-    if (debugFlags.noVideos) return attachHls(videoRef.current, null);
+    if (debugFlags.noVideos || reducedMotion) return attachHls(videoRef.current, null);
     return attachHls(videoRef.current, shouldLoad ? previewSrc : null);
-  }, [shouldLoad, previewSrc]);
+  }, [shouldLoad, previewSrc, reducedMotion]);
 
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (inView && shouldLoad) v.play().catch(() => {});
+    if (inView && shouldLoad && !reducedMotion) v.play().catch(() => {});
     else {
       v.pause();
       if (!inView) { try { v.currentTime = 0; } catch (e) { /* ignore */ } }
     }
-  }, [inView, shouldLoad]);
+  }, [inView, shouldLoad, reducedMotion]);
 
   // Scroll progress across the 200vh section (0 → 1 over 100vh of scroll).
   // The video stays fullscreen while p < 0.35 so the panel reads as a
@@ -116,8 +122,10 @@ export default function OutroVideoPanel({
   // before it — no margin, no rounded corners). Shrinks to ~300×400.
   const startWPx = typeof window !== 'undefined' ? window.innerWidth : 1440;
   const startHPx = typeof window !== 'undefined' ? window.innerHeight : 900;
-  const endWPx = isMobile ? 280 : 300;
-  const endHPx = isMobile ? 360 : 400;
+  // Phones: scale the end card with screen height so the mission and
+  // contact links still fit on short screens (e.g. iPhone SE).
+  const endHPx = isMobile ? Math.round(Math.min(360, Math.max(200, startHPx * 0.32))) : 400;
+  const endWPx = isMobile ? Math.round(endHPx * 0.78) : 300;
   const cardW = startWPx + (endWPx - startWPx) * p;
   const cardH = startHPx + (endHPx - startHPx) * p;
 
@@ -131,7 +139,7 @@ export default function OutroVideoPanel({
   // Mission paragraph + email fade in after card is mostly shrunk.
   const contentOpacity = clamp01((p - 0.7) / 0.3);
   const contentTranslateY = (1 - contentOpacity) * (isMobile ? 14 : 24);
-  const contentGapPx = isMobile ? 34 : 56;
+  const contentGapPx = isMobile ? 40 : 56;
 
   const handleClick = () => {
     // Only treat as "open modal" when the panel is in its fullscreen
@@ -147,6 +155,7 @@ export default function OutroVideoPanel({
     <section
       ref={sectionRef}
       data-section="outro"
+      data-film={filmIndex}
       style={{
         position: 'relative',
         height: '200vh',
@@ -219,6 +228,17 @@ export default function OutroVideoPanel({
             }}
           />
         </div>
+
+        {/* Same film overlay as every other panel while full-screen;
+            fades out the moment the card starts to shrink. */}
+        {chrome && (
+          <PanelChrome
+            {...chrome}
+            onPlay={() => onOpen && fullSrc && onOpen(fullSrc)}
+            interactive={p < 0.05}
+            style={{ opacity: clamp01(1 - p * 6), pointerEvents: p < 0.05 ? undefined : 'none', zIndex: 4 }}
+          />
+        )}
 
         {/* "by Veloure" — sits ABOVE the shrunk card, converges in from
             the sides as p → 1. Smaller and tighter to the card now so
@@ -323,7 +343,8 @@ export default function OutroVideoPanel({
               fontSize: 'clamp(11px, 0.85vw, 13px)',
               lineHeight: 1.6,
               letterSpacing: '0.02em',
-              color: 'rgba(245,242,236,0.78)',
+              color: 'rgba(245,242,236,0.82)',
+              textShadow: '0 1px 14px rgba(10,9,8,0.55)',
               margin: '0 0 18px 0',
             }}
           >
@@ -331,22 +352,18 @@ export default function OutroVideoPanel({
           </p>
 
           <a
+            className="outro-cta"
             href={`mailto:${contactEmail}`}
             data-interactive=""
-            style={{
-              display: 'inline-block',
-              fontFamily: 'var(--mono)',
-              fontSize: 'clamp(11px, 0.85vw, 13px)',
-              letterSpacing: '0.14em',
-              lineHeight: 1.4,
-              textTransform: 'uppercase',
-              color: 'rgba(245,242,236,0.82)',
-              padding: '2px 0',
-              borderBottom: '1px solid rgba(245,242,236,0.35)',
-              transition: 'border-color 240ms ease',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#F5F2EC'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(245,242,236,0.4)'; }}
+            tabIndex={contentOpacity > 0.5 ? 0 : -1}
+          >
+            {CONTACT_LABEL}
+          </a>
+          <a
+            className="outro-email"
+            href={`mailto:${contactEmail}`}
+            data-interactive=""
+            tabIndex={contentOpacity > 0.5 ? 0 : -1}
           >
             {contactEmail}
           </a>

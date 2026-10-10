@@ -1,6 +1,10 @@
 {
   "rewrites": [
     { "source": "/pulse", "destination": "/pulse.html" },
-    { "source": "/pulse/", "destination": "/pulse.html" }
+    { "source": "/pulse/", "destination": "/pulse.html" },
+    { "source": "/speed", "destination": "/index.html" },
+    { "source": "/speed/", "destination": "/index.html" },
+    { "source": "/focus", "destination": "/index.html" },
+    { "source": "/focus/", "destination": "/index.html" }
   ]
 }

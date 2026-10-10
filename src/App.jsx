@@ -1,14 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Scroll, useIsMobile } from './lib/ScrollContext';
 import HomeSection from './sections/HomeSection';
 import SplitScreenEntry from './sections/SplitScreenEntry';
-import PulseSection from './sections/PulseSection';
 import LoadingOverlay from './fx/LoadingOverlay';
 import VideoPanel from './fx/VideoPanel';
 import OutroVideoPanel from './fx/OutroVideoPanel';
 import VideoModal from './fx/VideoModal';
+import CategoryNav from './fx/CategoryNav';
 import PerfHUD from './fx/PerfHUD';
 import { debugFlags } from './lib/debugFlags';
+import { CONTACT_EMAIL, MISSION, categoryById, categoryFromPath } from './lib/categories';
+import { prefersReducedMotion } from './lib/useReducedMotion';
 
 // ── Locked design values (replaces tweaks system) ───────────────────────────
 const SERIF              = 'Bodoni Moda'; // eslint-disable-line no-unused-vars
@@ -27,25 +29,8 @@ const SECTIONS_META = [
   { id: 'contact', label: 'Contact', num: '05' },
 ];
 
-// Bucket panels — each shows a tiny 5s muted preview loop. Click
-// opens the full-quality video in a modal. previewSrc is the loop;
-// fullSrc is what plays in the modal.
-const SPEED_PANELS = [
-  { id: 'soccer-drone', previewSrc: '/loops/1of1.mp4',       fullSrc: '/1of1.mp4',       poster: '/posters/1of1.jpg' },
-  { id: 'soccer-kid',   previewSrc: '/loops/final-1of1.mp4', fullSrc: '/final-1of1.mp4', poster: '/posters/final-1of1.jpg' },
-  { id: 'afro-rave',    previewSrc: '/loops/afro-rave.mp4',  fullSrc: '/afro-rave.mp4',  poster: '/posters/afro-rave.jpg', lazy: true },
-];
-const FOCUS_PANELS = [
-  { id: 'juice',      previewSrc: '/loops/focus.mp4',      fullSrc: '/focus.mp4',      poster: '/posters/focus.jpg' },
-  { id: 'yomi-wunmi', previewSrc: '/loops/yomi-wunmi.mp4', fullSrc: '/yomi-wunmi.mp4', poster: '/posters/yomi-wunmi.jpg' },
-];
-
-// Outro: same mission + contact for both buckets. The anchor video
-// is the last loop of whichever bucket the user came from (visual
-// continuity from the reel into the contracting outro card).
-const OUTRO_MISSION_PLACEHOLDER =
-  "With the rise of AI, it's more important than ever to make content that is as human and emotional as possible. Every shot immortalizes priceless moments.";
-const OUTRO_EMAIL = 'contact@veloure.studio';
+// Films, copy, and URLs for Speed / Focus / Pulse live in
+// lib/categories.js. Every category renders through the same panels.
 
 // ── SideRail ─────────────────────────────────────────────────────────────────
 function SideRail({ activeIndex, scrollContainerRef, hidden }) {
@@ -180,15 +165,19 @@ function TopMark({ hidden }) {
 // Matches SPLIT_IN_END in HomeSection.jsx.
 const SPLIT_SCROLL_LOCK = 0.72;
 
+// /speed, /focus, /pulse open that category directly (outreach links,
+// refresh) — no loader, no intro, straight onto its title card.
+const INITIAL_PATH = typeof window === 'undefined' ? null : categoryFromPath(window.location.pathname);
+
 export default function App() {
   const scrollContainerRef = useRef(null);
   const [scrollState, setScrollState]   = useState({ y: 0, vh: 800 });
   const [activeIndex, setActiveIndex]   = useState(0);
   const [hasScrolled, setHasScrolled]   = useState(false);
-  const [loaderLeaving, setLoaderLeaving] = useState(false);
-  const [loaderVisible, setLoaderVisible] = useState(true);
-  const [selectedPath, setSelectedPath] = useState(null);
-  const [modalSrc, setModalSrc] = useState(null);
+  const [loaderLeaving, setLoaderLeaving] = useState(!!INITIAL_PATH);
+  const [loaderVisible, setLoaderVisible] = useState(!INITIAL_PATH);
+  const [selectedPath, setSelectedPath] = useState(INITIAL_PATH);
+  const [modalFilm, setModalFilm] = useState(null);
   const isMobile = useIsMobile();
 
   const homeRef    = useRef(null);
@@ -198,14 +187,57 @@ export default function App() {
   const selectedPathRef = useRef(null);
   useEffect(() => { selectedPathRef.current = selectedPath; }, [selectedPath]);
 
-  // Choosing Pulse puts its shareable URL in the bar (and backing out
-  // restores /) without a navigation, so a copied link opens /pulse.
+  // The open category's URL stays in the bar (/speed, /focus, /pulse;
+  // / when none) without a navigation, so a copied link or a refresh
+  // lands in the same place.
   useEffect(() => {
-    const path = selectedPath === 'pulse' ? '/pulse' : '/';
+    const path = categoryById(selectedPath)?.path || '/';
     if (window.location.pathname !== path) {
       window.history.replaceState(null, '', path + window.location.search);
     }
   }, [selectedPath]);
+
+  // ── Scroll helpers (nav, "View films", "Next film") ──────────────────
+  const scrollToY = useCallback((top) => {
+    const c = scrollContainerRef.current;
+    if (!c) return;
+    c.scrollTo({ top, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  }, []);
+
+  // Category title card = the split, locked fully open.
+  const introY = () => {
+    const c = scrollContainerRef.current;
+    return c ? c.clientHeight * SPLIT_SCROLL_LOCK : 0;
+  };
+
+  const scrollToFilm = useCallback((index) => {
+    const c = scrollContainerRef.current;
+    const el = c?.querySelector(`[data-film="${index}"]`);
+    if (el) scrollToY(el.offsetTop);
+  }, [scrollToY]);
+
+  // Past the last film: the outro card + mission + contact.
+  const scrollToOutro = useCallback(() => {
+    const c = scrollContainerRef.current;
+    const el = c?.querySelector('[data-section="outro"]');
+    if (el) scrollToY(el.offsetTop + c.clientHeight * 0.9);
+  }, [scrollToY]);
+
+  const goToCategory = useCallback((id) => {
+    setModalFilm(null);
+    selectedPathRef.current = id;
+    setSelectedPath(id);
+    // Wait for the new films to render, then land on the title card.
+    requestAnimationFrame(() => requestAnimationFrame(() => scrollToY(introY())));
+  }, [scrollToY]);
+
+  const goToAllWork = useCallback(() => {
+    setModalFilm(null);
+    selectedPathRef.current = null;
+    setSelectedPath(null);
+    const c = scrollContainerRef.current;
+    if (c) c.scrollTop = introY();
+  }, []);
 
   // Apply CSS font variables
   useEffect(() => {
@@ -359,6 +391,14 @@ export default function App() {
     <Scroll.Provider value={scrollState}>
       {loaderVisible && <LoadingOverlay leaving={loaderLeaving} />}
 
+      {/* First in the DOM so keyboard users reach it before the films. */}
+      <CategoryNav
+        activeId={selectedPath}
+        visible={!!selectedPath && !modalFilm}
+        onSelect={goToCategory}
+        onAllWork={goToAllWork}
+      />
+
       {/* Main scroll container */}
       <div
         ref={scrollContainerRef}
@@ -378,34 +418,52 @@ export default function App() {
           loaderDone={loaderLeaving}
           pathSelected={!!selectedPath}
         >
-          <SplitScreenEntry selectedPath={selectedPath} onSelectPath={setSelectedPath} />
+          <SplitScreenEntry
+            selectedPath={selectedPath}
+            onSelectPath={setSelectedPath}
+            onViewFilms={() => scrollToFilm(0)}
+          />
         </HomeSection>
-        {selectedPath === 'pulse' && <PulseSection />}
-        {selectedPath && selectedPath !== 'pulse' && (() => {
-          const panels = selectedPath === 'focus' ? FOCUS_PANELS : SPEED_PANELS;
-          return panels.map((p, i) => {
-            const isLast = i === panels.length - 1;
+        {(() => {
+          const cat = categoryById(selectedPath);
+          if (!cat) return null;
+          const total = cat.films.length;
+          return cat.films.map((film, i) => {
+            const isLast = i === total - 1;
+            const chrome = {
+              eyebrow: `${cat.label} · ${String(i + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`,
+              title: film.title,
+              duration: film.duration,
+              next: isLast
+                ? { label: 'Contact', onClick: scrollToOutro }
+                : { label: 'Next film', onClick: () => scrollToFilm(i + 1) },
+            };
+            const open = () => setModalFilm(film);
             if (isLast) {
               return (
                 <OutroVideoPanel
-                  key={p.id}
-                  previewSrc={p.previewSrc}
-                  fullSrc={p.fullSrc}
-                  poster={p.poster}
-                  mission={OUTRO_MISSION_PLACEHOLDER}
-                  contactEmail={OUTRO_EMAIL}
-                  onOpen={setModalSrc}
+                  key={`${cat.id}-${film.id}`}
+                  filmIndex={i}
+                  previewSrc={film.previewSrc}
+                  fullSrc={film.fullSrc}
+                  poster={film.poster}
+                  mission={MISSION}
+                  contactEmail={CONTACT_EMAIL}
+                  onOpen={open}
+                  chrome={chrome}
                 />
               );
             }
             return (
               <VideoPanel
-                key={p.id}
-                previewSrc={p.previewSrc}
-                fullSrc={p.fullSrc}
-                poster={p.poster}
-                lazy={p.lazy}
-                onOpen={setModalSrc}
+                key={`${cat.id}-${film.id}`}
+                filmIndex={i}
+                previewSrc={film.previewSrc}
+                fullSrc={film.fullSrc}
+                poster={film.poster}
+                lazy={film.lazy}
+                onOpen={open}
+                chrome={chrome}
               />
             );
           });
@@ -413,7 +471,14 @@ export default function App() {
       </div>
 
       {/* Modal overlay for full-quality video playback */}
-      <VideoModal src={modalSrc} open={!!modalSrc} onClose={() => setModalSrc(null)} />
+      <VideoModal
+        src={modalFilm?.fullSrc}
+        poster={modalFilm?.poster}
+        label={modalFilm ? (modalFilm.title || `${categoryById(selectedPath)?.label} film`) : undefined}
+        open={!!modalFilm}
+        onClose={() => setModalFilm(null)}
+      />
+
 
       {/* Global FX */}
       {debugFlags.debug && <PerfHUD />}

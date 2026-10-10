@@ -15,6 +15,8 @@ export const debugFlags = {
   noCursor: bare || flag('nocursor'),
   noVideos: bare || flag('novideos'),
   debug:    flag('debug'),
+  // ?reducedmotion=1 behaves as if the OS asked for reduced motion
+  reducedMotion: flag('reducedmotion'),
   // ?mesh=full|css|loader|off — picks the Mesh implementation
   meshVariant: params.get('mesh') || 'full',
 };

@@ -2,6 +2,8 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { Scroll } from '../lib/ScrollContext';
 import { attachHls } from '../lib/hls';
 import { debugFlags } from '../lib/debugFlags';
+import { useReducedMotion } from '../lib/useReducedMotion';
+import PanelChrome from './PanelChrome';
 
 /**
  * Full-screen (100vh) preview panel. Plays a tiny looping preview
@@ -12,11 +14,15 @@ import { debugFlags } from '../lib/debugFlags';
  *   fullSrc    — full-quality file to play in the modal on click
  *   lazy       — withhold the preview src until panel is near the viewport
  *   onOpen     — called with fullSrc when the panel is clicked
+ *   chrome     — PanelChrome props (eyebrow, title, duration, next…)
+ *
+ * With prefers-reduced-motion the loop never loads; the poster stays.
+ * If the loop fails to load, the poster stays too.
  *
  * IntersectionObserver gates play/pause/load so off-screen panels
  * don't hold decoder slots.
  */
-export default function VideoPanel({ previewSrc, fullSrc, poster, lazy = false, onOpen }) {
+export default function VideoPanel({ previewSrc, fullSrc, poster, lazy = false, onOpen, chrome, filmIndex }) {
   const wrapperRef = useRef(null);
   const videoRef = useRef(null);
   const unloadTimerRef = useRef(null);
@@ -25,6 +31,7 @@ export default function VideoPanel({ previewSrc, fullSrc, poster, lazy = false, 
 
   const [shouldLoad, setShouldLoad] = useState(false);
   const [inView, setInView] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   // ── Observers: load when near, play when in view ─────────────────────
   useEffect(() => {
@@ -94,15 +101,15 @@ export default function VideoPanel({ previewSrc, fullSrc, poster, lazy = false, 
 
   // ── Attach / detach preview loop ──────────────────────────────────────
   useEffect(() => {
-    if (debugFlags.noVideos) return attachHls(videoRef.current, null);
+    if (debugFlags.noVideos || reducedMotion) return attachHls(videoRef.current, null);
     return attachHls(videoRef.current, shouldLoad ? previewSrc : null);
-  }, [shouldLoad, previewSrc]);
+  }, [shouldLoad, previewSrc, reducedMotion]);
 
   // ── Drive play/pause from inView ─────────────────────────────────────
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (inView && shouldLoad) {
+    if (inView && shouldLoad && !reducedMotion) {
       v.play().catch(() => {});
     } else {
       v.pause();
@@ -110,7 +117,7 @@ export default function VideoPanel({ previewSrc, fullSrc, poster, lazy = false, 
         try { v.currentTime = 0; } catch (e) { /* ignore */ }
       }
     }
-  }, [inView, shouldLoad]);
+  }, [inView, shouldLoad, reducedMotion]);
 
   const handleClick = () => {
     if (onOpen && fullSrc) onOpen(fullSrc);
@@ -119,12 +126,12 @@ export default function VideoPanel({ previewSrc, fullSrc, poster, lazy = false, 
   return (
     <section
       ref={wrapperRef}
+      data-film={filmIndex}
+      // Click anywhere on the footage plays it; keyboard and screen
+      // readers use the explicit "Play with sound" button instead.
       onClick={handleClick}
-      role="button"
-      tabIndex={0}
-      aria-label="Play full video"
       data-interactive=""
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleClick(); }}
+      aria-label={chrome?.eyebrow}
       style={{
         position: 'relative',
         height: '100vh',
@@ -151,6 +158,7 @@ export default function VideoPanel({ previewSrc, fullSrc, poster, lazy = false, 
           pointerEvents: 'none',
         }}
       />
+      {chrome && <PanelChrome {...chrome} onPlay={handleClick} />}
     </section>
   );
 }
