@@ -263,6 +263,32 @@ export default function App() {
     let pending = false;
     let touchStartY = 0;
 
+    // Snap between the Veloure title (top) and the full selector so the
+    // crossfade never rests half-done (dim, and not yet clickable).
+    // Once scrolling goes idle in between, finish the move in the
+    // direction the visitor was heading.
+    let lastY = c.scrollTop;
+    let heading = 0;          // +1 down, -1 up
+    let touching = false;
+    let snapTimer = 0;
+    const SNAP_IDLE_MS = 140;
+
+    const snapIfBetween = () => {
+      snapTimer = 0;
+      if (selectedPathRef.current || touching) return;
+      const vh = c.clientHeight || 1;
+      const lockY = Math.min(vh * SPLIT_SCROLL_LOCK, Math.max(c.scrollHeight - vh, 0));
+      const y = c.scrollTop;
+      if (y <= 1 || y >= lockY - 1) return;
+      const target = heading < 0 ? 0 : lockY;
+      c.scrollTo({ top: target, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    };
+
+    const scheduleSnap = () => {
+      if (snapTimer) window.clearTimeout(snapTimer);
+      snapTimer = window.setTimeout(snapIfBetween, SNAP_IDLE_MS);
+    };
+
     const getLockBounds = () => {
       const vh = c.clientHeight || window.innerHeight || 1;
       const maxScroll = Math.max(c.scrollHeight - vh, 0);
@@ -305,6 +331,10 @@ export default function App() {
     };
 
     const onScroll = () => {
+      const y = c.scrollTop;
+      if (y !== lastY) heading = y > lastY ? 1 : -1;
+      lastY = y;
+      scheduleSnap();
       if (pending) return;
       pending = true;
       raf = requestAnimationFrame(update);
@@ -335,7 +365,13 @@ export default function App() {
       }
     };
 
+    const onTouchEnd = () => {
+      touching = false;
+      scheduleSnap();
+    };
+
     const onTouchStart = (event) => {
+      touching = true;
       touchStartY = event.touches[0]?.clientY ?? 0;
     };
 
@@ -354,13 +390,21 @@ export default function App() {
     };
 
     update();
+    // This effect re-attaches on the first scroll (hasScrolled flips),
+    // which cleared any pending snap — re-arm it.
+    scheduleSnap();
     c.addEventListener('scroll', onScroll, { passive: true });
     c.addEventListener('wheel', onWheel, { passive: false });
     c.addEventListener('touchstart', onTouchStart, { passive: true });
     c.addEventListener('touchmove', onTouchMove, { passive: false });
+    c.addEventListener('touchend', onTouchEnd, { passive: true });
+    c.addEventListener('touchcancel', onTouchEnd, { passive: true });
     window.addEventListener('resize', onScroll);
     return () => {
       cancelAnimationFrame(raf);
+      if (snapTimer) window.clearTimeout(snapTimer);
+      c.removeEventListener('touchend', onTouchEnd);
+      c.removeEventListener('touchcancel', onTouchEnd);
       c.removeEventListener('scroll', onScroll);
       c.removeEventListener('wheel', onWheel);
       c.removeEventListener('touchstart', onTouchStart);
